@@ -18,21 +18,38 @@
         <!-- <script src="src/jquery.contextMenu.min.js"></script> -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.ui.position.js"></script>
         <script src="src/datagen.js"></script>
+        <script src="src/data.js"></script>
     </head>
 
     <body>
-        <div id="dimension_1" class="container">
-
-        </div>
+        <div id="main_container"> </div>
         
         <div>
-            <button id="button_run" class="form-control inlineForProperties" enabled>
+            <button id="button_run" enabled>
                 Generate
             </button>
+            <button id="new_dimension" enabled>
+                New dimension
+            </button>
+        </div>
+
+        
+        <div id="main_vis">
+            
+            <div id="vis_widgets">
+            </div>
+            <div class="container">
+                <div id="boxplot">
+                </div>
+                <div id="histogram">
+                </div>
+                <div id="piechart">
+                </div>
+            </div>
         </div>
     </body>
-    <script src="src/generator.js"></script>
     <script src="src/menu.js"></script>
+    <script src="src/vis.js"></script>
     <!-- <script src="src/DataManager.js"></script>
     <script src="src/interactions.js"></script>
     <script src="src/histogram.js"></script>

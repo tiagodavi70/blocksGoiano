@@ -7,3 +7,11 @@
 .flex-item{
     flex-grow: 1;
 }
+
+.dimension {
+    border: 1px red solid;
+}
+
+.generator {
+    border: 1px black solid;
+}
