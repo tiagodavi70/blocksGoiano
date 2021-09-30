@@ -1,25 +1,28 @@
 
-$(function(){
-    function generateSVG(id, viewPoint) {
-        let svg = d3.select(id).append("svg")
-            .attr("width", width)
-            .attr("height", height)
-            .attr("viewBox", viewPoint);
-        svg.append("g")
-            .attr("stroke", "white");
-        svg.append("g")
-            .attr("id", "labels")
-            .attr("font-family", "sans-serif")
-            .attr("font-size", 12)
-            .attr("text-anchor", "middle");
-        return svg;
-    }
+function generateSVG(id, viewPoint) {
+    let svg = d3.select(id).append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .attr("viewBox", viewPoint)
+    svg.append("g")
+        .attr("stroke", "white")
+    svg.append("g")
+        .attr("id", "labels")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", 12)
+        .attr("text-anchor", "middle");
+    return svg;
+}
 
+$(function(){
+    
     generateSVG("#piechart", [-width / 2, -height / 2, width, height]);
     generateSVG("#histogram", [0, 0, width, height]);
 
-    let sel = d3.select("#vis_widgets");
+    generateSVG("#pieLoaded", [-width / 2, -height / 2, width, height]);
+    generateSVG("#histogramLoaded", [0, 0, width, height]);
 
+    let sel = d3.select("#piechart");
     sel.append("div")
         .text("Pie Dimension")
     sel.append("select")
@@ -27,9 +30,11 @@ $(function(){
         .on("change", function(e,d) {
             let dimSelected = d3.select(this).node().value;
             let data = generateData();
-            pieChart(convertForPieChart(data, dimSelected));
+            pieChart(convertForPieChart(data, dimSelected), {"selector": "#piechart"});
             update();
         })
+    
+    sel = d3.select("#histogram");
     sel.append("div")
         .text("Histogram Dimension")
     sel.append("select")
@@ -37,7 +42,7 @@ $(function(){
         .on("change", function(e,d) {
             let dimSelected = d3.select(this).node().value;
             let data = generateData();
-            histogram(convertForHistogram(data, dimSelected));
+            histogramVis(convertForHistogram(data, dimSelected), {"selector": "#histogram"});
             update();
         })
     // d3.select("#vis_widgets").append("select")
@@ -50,16 +55,14 @@ $(function(){
     //     })
 });
 
-
 function updateOptions(id, type) {
     let f = type == "cat" ? d => d.generator.name == "Categorical" : d => d.generator.name != "Categorical" ;
     
     let cols = datagenerator.columns.filter(f); // column.generator
     let names = cols.map((d,i) => d.name);
     
-    // console.log(cfg, cfg["type"], " ", datagenerator.columns);
 
-    d3.select("#vis_widgets").select(id).selectAll("option")
+    d3.select(id).selectAll("option")
         .data(names)
         .join("option")
             .attr("value", d => d)
@@ -86,7 +89,7 @@ function pieChart(data, cfg) {
 
     const arcs = pie(data);
 
-    let svg = d3.select("#piechart").select("svg");
+    let svg = d3.select(cfg.selector).select("svg");
 
     svg.select("g").selectAll("path")
         .data(arcs)
@@ -118,15 +121,14 @@ function pieChart(data, cfg) {
                 .attr("x", 0)
                 .attr("y", "0.7em")
                 .attr("fill-opacity", 0.7)
-                .text(d => d.data.value.toLocaleString()));
+                .text(d => `${d.data.key}: ${d.data.value.toLocaleString()}`));
 }
 
-function histogram(data) {
+function histogramVis(data, cfg) {
 
     let margin = {top: 20, right: 20, bottom: 30, left: 40};
     let color = "steelblue";
     
-
     let x = d3.scaleLinear()
         .domain([data[0].x0, data[data.length - 1].x1])
         .range([margin.left, width - margin.right])
@@ -142,6 +144,8 @@ function histogram(data) {
             .attr("x", width - margin.right)
             .attr("y", -4)
             .attr("fill", "currentColor")
+            .attr("paint-order","stroke")
+            .attr("stroke","#FFFFFF")
             .attr("font-weight", "bold")
             .attr("text-anchor", "end")
             .text(data.x))
@@ -156,18 +160,18 @@ function histogram(data) {
             .attr("font-weight", "bold")
             .text(data.y))
     
-    let svg = d3.select("#histogram").select("svg");
+    let svg = d3.select(cfg.selector).select("svg");
 
     svg.selectAll("rect")
         .data(data)
         .join("rect")
             .attr("x", d => x(d.x0) + 1)
-            .attr("width", d => Math.max(10, x(d.x1) - x(d.x0) - 1))
+            .attr("width", d => Math.max(data.length > 1 ? 0 : 10, x(d.x1) - x(d.x0) - 1))
             .attr("y", d => y(d.length))
             .attr("height", d => y(0) - y(d.length))
             .attr("fill", color);
 
-    svg.select(".axis-histogram").selectAll("*").remove();
+    svg.selectAll(".axis-histogram").selectAll("*").remove();
 
     svg.append("g")
         .classed("axis-histogram", true)

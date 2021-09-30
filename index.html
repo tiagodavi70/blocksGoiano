@@ -2,56 +2,96 @@
     <head>
         <title> Blocks UI </title>
         <!-- <link rel="stylesheet" type="text/css" href="style.css"></link> -->
-        <script>var exports = 0;</script>
+        
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+        </style>
+        
+        <script src="https://d3js.org/d3.v6.js"></script>
 
-        <script src="https://d3js.org/d3.v6.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
-        <script src="https://cdn.jsdelivr.net/npm/vega-lite@4"></script>
-        <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
-        <script src="src/randgen.js"></script>
-        <script src="https://momentjs.com/downloads/moment.min.js"></script>
-        <script src="https://unpkg.com/seedrandom@3.0.5/seedrandom.min.js"></script>
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"> </script>
-        <link rel="stylesheet" href="src/layout.css">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.contextMenu.min.css">
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.contextMenu.min.js"></script>
-        <!-- <script src="src/jquery.contextMenu.min.js"></script> -->
+        <script src="https://code.jquery.com/jquery-3.6.0.js"> </script>
+       
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.contextMenu.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.contextMenu.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.ui.position.js"></script>
+
+        <script src="src/randgen.js"></script>        
+        <script src="https://momentjs.com/downloads/moment.js"></script>
+        <script src="https://unpkg.com/seedrandom@3.0.5/seedrandom.js"></script>
+        <link rel="stylesheet" href="src/tabs.css">
+        <link rel="stylesheet" href="src/layout.css">
         <script src="src/datagen.js"></script>
-        <script src="src/data.js"></script>
     </head>
 
     <body>
-        <div id="main_container"> </div>
-        
-        <div>
-            <button id="button_run" enabled>
-                Generate
-            </button>
-            <button id="new_dimension" enabled>
-                New dimension
-            </button>
+        <div class="pc-tab">
+            <input checked="checked" id="tab1" type="radio" name="pct"  />
+            <input id="tab2" type="radio" name="pct" />
+            <input id="tab3" type="radio" name="pct" />
+            <input id="tab4" type="radio" name="pct" />
+            <nav>
+                <ul>
+                  <li class="tab1">
+                    <label for="tab1">Overview</label>
+                  </li>
+                  <li class="tab2">
+                    <label for="tab2">DataGenerator</label>
+                  </li>
+                  <li class="tab3">
+                    <label for="tab3">Visualizations</label>
+                  </li>
+                  <li class="tab4">
+                    <label for="tab4">Comparison</label>
+                  </li>
+                </ul>
+            </nav>
+            <section>
+                <div id="overview" class="tab1"> 
+                </div>
+                <div id="generators" class="tab2"> 
+                    <div id="main_container"> </div>
+                    <div>
+                        <button id="new_dimension" enabled>
+                            Add dimension
+                        </button>
+                    </div>
+                </div>
+                <div id="visualizations" class="tab3">
+                    <div id="main_vis">
+            
+                        <div id="vis_widgets">
+                        </div>
+                        <div class="container">
+                            <div id="boxplot">
+                            </div>
+                            <div id="histogram">
+                            </div>
+                            <div id="piechart">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="comparison" class="tab4">
+                    <div id="datasets">
+
+                    </div>
+                    <div class="container">
+                        <div id="loaded_data">
+                            <div id="pieLoaded">
+                            </div>
+                            <div id="histogramLoaded">
+                            </div>
+                        </div>
+                        <div id="synth_data">
+
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
 
-        
-        <div id="main_vis">
-            
-            <div id="vis_widgets">
-            </div>
-            <div class="container">
-                <div id="boxplot">
-                </div>
-                <div id="histogram">
-                </div>
-                <div id="piechart">
-                </div>
-            </div>
-        </div>
     </body>
+    <script src="src/data.js"></script>
     <script src="src/menu.js"></script>
     <script src="src/vis.js"></script>
-    <!-- <script src="src/DataManager.js"></script>
-    <script src="src/interactions.js"></script>
-    <script src="src/histogram.js"></script>
-    <script src="src/app.js"></script> -->
 </html>

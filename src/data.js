@@ -13,7 +13,7 @@ $(function() {
         update();
     });
     
-    
+    loadData();
 });
 
 function generateData() {
@@ -34,33 +34,66 @@ function generateData() {
 }
 
 function update() {
+
     let keysCategorical = updateOptions("#pieSelection", "cat"); 
     let keysNumerical =  updateOptions("#histogramSelection", "num");
 
+    /*
     let dg = new DataGenerator();
     dg.addColumn("dim1");
     let g = new RandomCategoricalQtt();
     g.array = ["aaa"];
     g.counterQtt = [0];
-    // g.reset()
+    // g.reset();
     dg.addGeneratorToIndex(0,g);
+    */
 
     console.log(datagenerator);
-    console.log(dg);
-    // console.log(dg.generateSample())
-    // let data = generateData();
-    // console.log("keys cat", keysCategorical);
-    // console.log("keys num", keysNumerical);
+
+    let data = generateData();
+    console.log("keys cat", keysCategorical);
+    console.log("keys num", keysNumerical);
     
-    // if (keysCategorical.length > 0)
-    //     pieChart(convertForPieChart(data, keysCategorical[0]));
+    if (keysCategorical.length > 0)
+        pieChart(convertForPieChart(data, keysCategorical[0]), {"selector": "#piechart"});
     
-    // if (keysNumerical.length > 0)
-    //     histogram(convertForHistogram(data, keysNumerical[0]));
+    if (keysNumerical.length > 0)
+        histogramVis(convertForHistogram(data, keysNumerical[0]), {"selector": "#histogram"});
 }
 
-function load() {
+function loadData() {
+    
 
+    let datasets = ["iris.csv", "automobile.csv"];
+    let types = {"iris.csv": {"sepal_length": "num", "sepal_width": "num",
+                 "petal_length": "num", "petal_width": "num","iris":"cat"}
+                };
+
+    function updateComparison(dataPath) {
+
+        d3.csv("data/" + dataPath, d3.autoType).then(function(data) {
+            let cat_keys = Object.keys(types[dataPath]).filter( key => types[dataPath][key] == "cat");
+            let num_keys = Object.keys(types[dataPath]).filter( key => types[dataPath][key] == "num");
+
+            console.log(cat_keys, num_keys);
+            console.log(convertForPieChart(data, cat_keys[0]))
+            pieChart(convertForPieChart(data, cat_keys[0]), {"selector": "#pieLoaded"});
+            histogramVis(convertForHistogram(data, num_keys[0]), {"selector": "#histogramLoaded"});
+        })
+    }
+
+    d3.select("#datasets").append("select")
+            .on("change", function(e, d) {
+                let path = d3.select(this).node().value;
+                updateComparison(path)
+            })
+        .selectAll("option")
+        .data(datasets)
+        .join("option")
+            .text(d => d)
+            .attr("value", d => d);
+
+    updateComparison(datasets[0])
 }
 
 function convertForPieChart(data, key) {

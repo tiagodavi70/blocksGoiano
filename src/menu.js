@@ -56,14 +56,13 @@ function createNewGenerator(dim_name) {
             createNewGenerator(dim_name);
             params.forEach((d, i) => createWidget(name, dim_name, i, generator));
             
-            console.log(d3.selectAll(".external-update").nodes());
             if (d3.selectAll(".external-update").nodes().length > 0) {
-                console.log("aqui")
                 d3.selectAll(".external-update").nodes().forEach( d => {
-                    console.log(d);
                     d.dispatchEvent(new Event('change'));
                 });   
             }
+
+            update();
         },
         items: configureMenuOfGens()
     });
@@ -90,8 +89,6 @@ function createWidget(parentName, dimName, paramIndex, generator) {
             // .classed("container", true)
             .classed(parentName, true)
             .text(displayName);
-    
-    console.log(params);
 
     switch (param.type) {
         case "number": {
@@ -245,7 +242,8 @@ function createWidget(parentName, dimName, paramIndex, generator) {
             
             function updateOptions() {
                 
-                let cols = datagenerator.columns.filter(d => d.type == "Numeric" && d.name !== dimName); // column.generator
+                let cols = datagenerator.columns.filter(d => d.generator.name != "Categorical" 
+                                                        && d.name !== dimName); // column.generator
                 let names = cols.map((d,i) => d.name);
 
                 options.selectAll("option")
@@ -275,7 +273,8 @@ function createWidget(parentName, dimName, paramIndex, generator) {
             
             function updateOptions() {
                 
-                let cols = datagenerator.columns.filter(d => d.generator.type == "CategoricalColumn" && d.name !== dimName); // column.generator
+                let cols = datagenerator.columns.filter(d => d.generator.name == "Categorical" 
+                                                            && d.name !== dimName); // column.generator
                 let names = cols.map((d,i) => d.name);
 
                 options.selectAll("option")
@@ -303,7 +302,7 @@ function createWidget(parentName, dimName, paramIndex, generator) {
 }
 
 function configureMenuOfGens() {
-    let types = ["Sequence", "Random", "Function", "Accessory", "Geometric"];
+    let types = ["Sequence", "Random", "_Function", "Accessory", "Geometric"];
     let menuObj = {};
 
     for(let t of types){

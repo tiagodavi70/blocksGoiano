@@ -2436,7 +2436,7 @@ class Path2DFillGenerator extends Geometric{
     }
 }
 
-class Function extends Generator{
+class _Function extends Generator{
 
     constructor(name, inputGenerator, inputGenIndex){
         super(name);
@@ -2485,7 +2485,7 @@ class Function extends Generator{
 
 
 
-class LinearFunction extends Function{
+class LinearFunction extends _Function{
     constructor(inputGenerator, a, b){
         super("Linear Function", inputGenerator);
         this.a = a || 2;
@@ -2528,7 +2528,7 @@ class LinearFunction extends Function{
     }
 }
 
-class QuadraticFunction extends Function{
+class QuadraticFunction extends _Function{
     constructor(inputGenerator, a, b, c){
         super("Quadratic Function", inputGenerator);
         this.a = a || 1;
@@ -2580,7 +2580,7 @@ class QuadraticFunction extends Function{
     }
 }
 
-class PolynomialFunction extends Function{
+class PolynomialFunction extends _Function{
     constructor(inputGenerator, constants){
         super("Polynomial Function", inputGenerator);
         this.constants = constants || [1,1,1];
@@ -2617,7 +2617,7 @@ class PolynomialFunction extends Function{
     }
 }
 
-class ExponentialFunction extends Function{
+class ExponentialFunction extends _Function{
     constructor(inputGenerator, a, b){
         super("Exponential Function", inputGenerator);
         this.a = a || 2;
@@ -2659,7 +2659,7 @@ class ExponentialFunction extends Function{
     }
 }
 
-class LogarithmFunction extends Function{
+class LogarithmFunction extends _Function{
     constructor(inputGenerator, base){
         super("Logarithm Function", inputGenerator);
         this.base = base || Math.E;
@@ -2692,7 +2692,7 @@ class LogarithmFunction extends Function{
     }
 }
 
-class SinusoidalFunction extends Function{
+class SinusoidalFunction extends _Function{
     constructor(inputGenerator, a, b, c){
         super("Sinusoidal Function", inputGenerator);
         this.a = a || 1;
@@ -2744,7 +2744,7 @@ class SinusoidalFunction extends Function{
     }
 }
 
-class SwitchCaseFunction extends Function{
+class SwitchCaseFunction extends _Function{
     constructor(name, listOfGenerators, inputGenerator, inputGenIndex){
         super(name, inputGenerator, inputGenIndex);
         this.listOfGenerators = listOfGenerators || {};
@@ -3686,7 +3686,7 @@ class DataGen {
     removeColumn(index){
 
         let removeFunc = (g) => {
-            if(g instanceof Function) {
+            if(g instanceof _Function) {
                 if (g.inputGenIndex > index) {
                     g.inputGenIndex--;
                 }else if (g.inputGenIndex === index) {
@@ -4089,7 +4089,7 @@ for(let attr in DataGen.listOfGens){
 
 DataGen.superTypes = {
     Generator,
-    Function,
+    _Function,
     SwitchCaseFunction,
     Sequence,
     Random,
