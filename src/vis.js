@@ -1,8 +1,8 @@
 
-function generateSVG(id, viewPoint) {
+function generateSVG(id, viewPoint, size={width:width, height:height}) {
     let svg = d3.select(id).append("svg")
-        .attr("width", width)
-        .attr("height", height)
+        .attr("width", size.width)
+        .attr("height", size.height)
         .attr("viewBox", viewPoint)
     svg.append("g")
         .attr("stroke", "white")
@@ -21,47 +21,29 @@ $(function(){
 
     generateSVG("#pieLoaded", [-width / 2, -height / 2, width, height]);
     generateSVG("#histogramLoaded", [0, 0, width, height]);
-
-    let sel = d3.select("#piechart");
-    sel.append("div")
-        .text("Pie Dimension")
-    sel.append("select")
-        .attr("id", "pieSelection")
-        .on("change", function(e,d) {
-            let dimSelected = d3.select(this).node().value;
-            let data = generateData();
-            pieChart(convertForPieChart(data, dimSelected), {"selector": "#piechart"});
-            update();
-        })
-    
-    sel = d3.select("#histogram");
-    sel.append("div")
-        .text("Histogram Dimension")
-    sel.append("select")
-        .attr("id", "histogramSelection")
-        .on("change", function(e,d) {
-            let dimSelected = d3.select(this).node().value;
-            let data = generateData();
-            histogramVis(convertForHistogram(data, dimSelected), {"selector": "#histogram"});
-            update();
-        })
-    // d3.select("#vis_widgets").append("select")
-    //     .attr("id", "boxplotSelection")
-    //     .on("change", function(e,d) {
-    //         let dimSelected = d3.select(this).node().value;
-    //         let data = generateData();
-    //         histogram(convertForHistogram(data, dimSelected));
-    //         update();
-    //     })
 });
 
+function describeNumericalDim(a, dim, id) {
+    let arr = a.map(d => d[dim]);
+    if (arr[0] !== undefined) {
+        d3.select(id)
+            .html(`<div>
+                Mean: ${d3.mean(arr).toFixed(3)} <br>
+                Median: ${d3.median(arr).toFixed(3)} <br>
+                Standard Deviation: ${d3.deviation(arr).toFixed(3)} <br>
+                Variance: ${d3.variance(arr).toFixed(3)} <br>
+                Min-Max: [${d3.min(arr).toFixed(3)}, ${d3.max(arr).toFixed(3)}] <br>
+            </div>`);
+    }
+    // d3.quantile(athletes, 0.05, d => d.height)
+}
+
 function updateOptions(id, type) {
-    let f = type == "cat" ? d => d.generator.name == "Categorical" : d => d.generator.name != "Categorical" ;
+    let f = d => d.type == type;
     
     let cols = datagenerator.columns.filter(f); // column.generator
     let names = cols.map((d,i) => d.name);
     
-
     d3.select(id).selectAll("option")
         .data(names)
         .join("option")
@@ -70,18 +52,18 @@ function updateOptions(id, type) {
     return names;
 }
 
-function pieChart(data, cfg) {
+function pieChart(data, cfg={width: width, height: height}) {
 
     let pie = d3.pie()
         .sort(null)
         .value(d => d.value);
 
-    const radius = Math.min(width, height) / 2 * 0.8;
+    const radius = Math.min(cfg.width, cfg.height) / 2 * 0.8;
     let arcLabel = d3.arc().innerRadius(radius).outerRadius(radius);
 
     let arc = d3.arc()
         .innerRadius(0)
-        .outerRadius(Math.min(width, height) / 2 - 1)
+        .outerRadius(Math.min(cfg.width, cfg.height) / 2 - 1)
     
     let color = d3.scaleOrdinal()
         .domain(data.map(d => d.key))
@@ -124,24 +106,24 @@ function pieChart(data, cfg) {
                 .text(d => `${d.data.key}: ${d.data.value.toLocaleString()}`));
 }
 
-function histogramVis(data, cfg) {
+function histogramVis(data, cfg={width: width, height: height}) {
 
     let margin = {top: 20, right: 20, bottom: 30, left: 40};
     let color = "steelblue";
     
     let x = d3.scaleLinear()
         .domain([data[0].x0, data[data.length - 1].x1])
-        .range([margin.left, width - margin.right])
+        .range([margin.left, cfg.width - margin.right])
 
     let y = d3.scaleLinear()
         .domain([0, d3.max(data, d => d.length)]).nice()
-        .range([height - margin.bottom, margin.top])
+        .range([cfg.height - margin.bottom, margin.top])
 
     let xAxis = g => g
-        .attr("transform", `translate(0,${height - margin.bottom})`)
-        .call(d3.axisBottom(x).ticks(width / 80 ).tickSizeOuter(0))
+        .attr("transform", `translate(0,${cfg.height - margin.bottom})`)
+        .call(d3.axisBottom(x).ticks(cfg.width / 80 ).tickSizeOuter(0))
         .call(g => g.append("text")
-            .attr("x", width - margin.right)
+            .attr("x", cfg.width - margin.right)
             .attr("y", -4)
             .attr("fill", "currentColor")
             .attr("paint-order","stroke")
@@ -152,7 +134,7 @@ function histogramVis(data, cfg) {
 
     let yAxis = g => g
         .attr("transform", `translate(${margin.left},0)`)
-        .call(d3.axisLeft(y).ticks(height / 40))
+        .call(d3.axisLeft(y).ticks(cfg.height / 40))
         .call(g => g.select(".domain").remove())
         .call(g => g.select(".tick:last-of-type text").clone()
             .attr("x", 4)
@@ -182,3 +164,12 @@ function histogramVis(data, cfg) {
         .call(yAxis);
 }
 
+function corrMatrix(data, cfg) {
+    
+}
+
+function clearDG() {
+    d3.select("#piechart").style("display", "none");
+    d3.select("#histogram").style("display", "none");
+    d3.select("#vis_info").style("display", "none");
+}

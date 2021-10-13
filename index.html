@@ -10,7 +10,11 @@
         <script src="https://d3js.org/d3.v6.js"></script>
 
         <script src="https://code.jquery.com/jquery-3.6.0.js"> </script>
-       
+        
+        <script src="https://unpkg.com/jeezy@1.12.11/lib/jeezy.min.js"></script>
+        <script src="https://unpkg.com/data2grid@1.0.0/build/data2grid.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/1.3.5/chroma.min.js"></script>
+
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.contextMenu.css">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.contextMenu.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.ui.position.js"></script>
@@ -18,8 +22,9 @@
         <script src="src/randgen.js"></script>        
         <script src="https://momentjs.com/downloads/moment.js"></script>
         <script src="https://unpkg.com/seedrandom@3.0.5/seedrandom.js"></script>
-        <link rel="stylesheet" href="src/tabs.css">
-        <link rel="stylesheet" href="src/layout.css">
+        <link rel="stylesheet" href="css/tabs.css">
+        <link rel="stylesheet" href="css/layout.css">
+        <link rel="stylesheet" href="css/tablejs.css">
         <script src="src/datagen.js"></script>
     </head>
 
@@ -46,18 +51,38 @@
                 </ul>
             </nav>
             <section>
-                <div id="overview" class="tab1"> 
+                <div id="overview" class="tab1">
+                    <!-- <select id="overview_num"> </select> -->
+                    <div class="container">
+                        <div>
+                            <div>
+                                Dimensions
+                            </div>
+                            <div id="overview_stats">
+    
+                            </div>
+                        </div> 
+                        <div id="overview_viz">
+                            
+                        </div>
+                    </div>
                 </div>
-                <div id="generators" class="tab2"> 
-                    <div id="main_container"> </div>
-                    <div>
+                <div id="generators" class="tab2 container"> 
+                    <div style="padding: 10px;">
                         <button id="new_dimension" enabled>
                             Add dimension
                         </button>
+                        <div id="tab_dimension" style="padding: 10px;" class="container">
+
+                        </div>
                     </div>
-                </div>
-                <div id="visualizations" class="tab3">
-                    <div id="main_vis">
+                    <div id="main_container"> 
+                        <div id="text_placeholder">
+                        </div>
+                        <div id="dimension_holder" class="container dimension">
+                        </div>
+                    </div>
+                    <div id="main_vis" class="container">
             
                         <div id="vis_widgets">
                         </div>
@@ -69,6 +94,12 @@
                             <div id="piechart">
                             </div>
                         </div>
+                        <div id="vis_info">
+                        </div>
+                    </div>
+                </div>
+                <div id="visualizations" class="tab3">
+                    <div id="table_vis">
                     </div>
                 </div>
                 <div id="comparison" class="tab4">
@@ -94,4 +125,6 @@
     <script src="src/data.js"></script>
     <script src="src/menu.js"></script>
     <script src="src/vis.js"></script>
+    <script src="src/table.js"></script>
+    <script src="src/overview.js"></script>
 </html>

@@ -17,48 +17,77 @@ $(function() {
 });
 
 function generateData() {
-    // let menu_options = configureMenuOfGens();
-    // for ( let t of ["Sequence", "Random", "Function", "Accessory"] ) {
-    //     let options = menu_options[t];
-    //     for (let o of Object.keys(options.items)) {
-    //         let generator = new DataGenerator.listOfGens[o];
-    //         let params = generator.getGenParams();
-    //         if (params.map( d => d.type).filter( d => d == "numarray").length > 0) {
-    //             console.log(generator, params.map( d => d.type));
-    //         }
-    //     }
-    // }
-
-    // console.log(menu_options);
-    return datagenerator.generateSample();
+    let data =  datagenerator.generateSample();
+    data.columns = datagenerator.columns.map(d => d.name); 
+    return data;
 }
 
 function update() {
 
-    let keysCategorical = updateOptions("#pieSelection", "cat"); 
-    let keysNumerical =  updateOptions("#histogramSelection", "num");
-
-    /*
-    let dg = new DataGenerator();
-    dg.addColumn("dim1");
-    let g = new RandomCategoricalQtt();
-    g.array = ["aaa"];
-    g.counterQtt = [0];
-    // g.reset();
-    dg.addGeneratorToIndex(0,g);
-    */
-
-    console.log(datagenerator);
-
+    // let keysCategorical = updateOptions("#pieSelection", "cat"); 
+    let keysNumerical = updateOptions("#overview_num", "Numeric");
+    
     let data = generateData();
-    console.log("keys cat", keysCategorical);
-    console.log("keys num", keysNumerical);
     
-    if (keysCategorical.length > 0)
-        pieChart(convertForPieChart(data, keysCategorical[0]), {"selector": "#piechart"});
+    let dim_name = d3.select("#text_placeholder").text();
+    let col = datagenerator.columns[datagenerator.columns.map(d => d.name).indexOf(dim_name)];
+    let gen = col.generator;
+    let geni = gen;
+    for (let i = 0 ; i < nGen(gen) - 1 ; i++) {
+        geni = geni.generator;
+    }
+     
+    let type = col.type;
     
-    if (keysNumerical.length > 0)
-        histogramVis(convertForHistogram(data, keysNumerical[0]), {"selector": "#histogram"});
+    clearDG();
+    if (data[0][dim_name] !== undefined) {
+        console.log(data, keysNumerical)
+        describeNumDataset(data, keysNumerical);
+
+        let t_data = data.slice(-10);
+        t_data.columns = data.columns;
+        d3.select("#table_vis").selectAll("*").remove();
+        let table = new Table("#table_vis", t_data, {size: "300px"})
+        table.render();
+
+        if (type == "Categorical") {
+            if (!(geni["array"].length == 3 && geni["array"].filter(
+                (d, i) => d == ['Banana', 'Apple', 'Orange'][i]).length == 3)) {
+                    d3.select("#piechart").style("display", "inherit");    
+                    
+                    pieChart(convertForPieChart(data, dim_name), 
+                        {"width": width, "height": height, "selector": "#piechart"});
+
+                    d3.select("#overview_viz").append("div")
+                        .text(dim_name)
+                    .append("div")
+                        .attr("id", "overview_" + dim_name);
+
+                    generateSVG("#overview_" + dim_name, [-width / 4, -height / 4, width / 2, height / 2],
+                                        {width: width / 2, height: height / 2});
+                    pieChart(convertForPieChart(data, dim_name), 
+                            {"width": width/2, "height": height/2, "selector": "#overview_" + dim_name});
+                }
+        } else if (type == "Numeric") {
+            d3.select("#histogram").style("display", "inherit");
+            d3.select("#vis_info").style("display", "inherit");
+
+            histogramVis(convertForHistogram(data, dim_name), 
+                {"width": width, "height": height, "selector": "#histogram"});
+
+            describeNumericalDim(data, dim_name, "#vis_info");
+
+            d3.select("#overview_viz").append("div")
+                .text(dim_name)
+            .append("div")    
+                .attr("id", "overview_" + dim_name);
+                        
+            generateSVG("#overview_" + dim_name, [0, 0, width / 2, height / 2],
+                    {width: width / 2, height: height / 2});
+            histogramVis(convertForHistogram(data, dim_name), 
+                    {"width": width/2, "height": height/2, "selector": "#overview_" + dim_name});
+        }
+    }
 }
 
 function loadData() {
@@ -75,10 +104,8 @@ function loadData() {
             let cat_keys = Object.keys(types[dataPath]).filter( key => types[dataPath][key] == "cat");
             let num_keys = Object.keys(types[dataPath]).filter( key => types[dataPath][key] == "num");
 
-            console.log(cat_keys, num_keys);
-            console.log(convertForPieChart(data, cat_keys[0]))
-            pieChart(convertForPieChart(data, cat_keys[0]), {"selector": "#pieLoaded"});
-            histogramVis(convertForHistogram(data, num_keys[0]), {"selector": "#histogramLoaded"});
+            pieChart(convertForPieChart(data, cat_keys[0]), {"width": width, "height": height, "selector": "#pieLoaded"});
+            histogramVis(convertForHistogram(data, num_keys[0]), {"width": width, "height": height, "selector": "#histogramLoaded"});
         })
     }
 

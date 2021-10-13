@@ -13,9 +13,21 @@
 }
 
 .dimension {
-    border: 1px red solid;
+    border: 1px #555 solid;
 }
 
 .generator {
     border: 1px black solid;
+    float: left;
+}
+
+.tab_dim {
+  padding: 15px 25px;
+  background-color: #eeeeee;
+  float: left;
+  color: #444;
+}
+
+.scrolllist {
+    overflow: auto;
 }

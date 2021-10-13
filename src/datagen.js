@@ -130,8 +130,14 @@ class Generator{
      * O gerador que foi chamada o método sairá da sua cadeia de geradores.
      * @param gen O gerador que assumirá o lugar do gerador que foi chamada o método.
      */
-    changeGenerator(gen){
+    changeGenerator(gen, order=0){
+        if (order != 0) {
+            this.generator.changeGenerator(gen, order - 1);
+            return;
+        }
+        
         gen.order = this.order;
+        
         if (this.parent) {
             gen.parent = this.parent;
             this.parent.generator = gen;
@@ -184,6 +190,7 @@ class Generator{
      * Caso não exista um operador, o valor inserido é somado ao valor gerado e retornado
      */
     generate(sub_value){
+        // console.log("inside super generate", this.ID, this.generator);
         if(this.generator && this.operator){
             return this.lastGenerated = this.operator(sub_value, this.generator.generate());
         }
@@ -262,6 +269,7 @@ class RandomUniformGenerator extends Random{
     }
 
     generate(){
+        // console.log("inside generator bbbb", this.ID)
         let v = randgen.runif(this.min, this.max, this.disc);
         return super.generate(v);
     }
@@ -3671,8 +3679,9 @@ class DataGen {
     changeGeneratorToIndex(index, gen, order){
         if (order === 0)
             this.columns[index].generator = gen;
-        else
+        else {
             this.columns[index].generator.changeGenerator(gen,order);
+        }
     }
 
     addGeneratorToIndex(index, gen){
@@ -3737,7 +3746,7 @@ class DataGen {
         else Math.random = originalRandom;
 
         let data = [];
-        const numberLines = 
+        let numberLines = 
             Number(quantity) ?
                 quantity > this.step_lines ? 
                     this.step_lines 
@@ -3751,6 +3760,7 @@ class DataGen {
                     if(this.save_as === "json" && !this.header){
                         data[i].push(this.columns[j].generator.generate());
                     } else {
+                        // console.log("inside loop", this.columns[j].generator.ID)
                         data[i][this.columns[j].name] = this.columns[j].generator.generate();
                     }
                 }
