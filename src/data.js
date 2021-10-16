@@ -1,8 +1,8 @@
 
 let datagenerator = new DataGenerator();
 
-let width = 300;
-let height = 300;
+let width = 270;
+let height = 270;
 
 $(function() {
 
@@ -26,22 +26,23 @@ function update() {
 
     // let keysCategorical = updateOptions("#pieSelection", "cat"); 
     let keysNumerical = updateOptions("#overview_num", "Numeric");
-    
-    let data = generateData();
-    
+    let colsToNotUpdate = datagenerator.columns.filter(d => d.generator.inputGenerator);
+
+    // console.log(colsToNotUpdate);
+
     let dim_name = d3.select("#text_placeholder").text();
     let col = datagenerator.columns[datagenerator.columns.map(d => d.name).indexOf(dim_name)];
     let gen = col.generator;
     let geni = gen;
     for (let i = 0 ; i < nGen(gen) - 1 ; i++) {
         geni = geni.generator;
-    }
-     
+    }     
     let type = col.type;
+
+    let data = generateData();
     
     clearDG();
     if (data[0][dim_name] !== undefined) {
-        console.log(data, keysNumerical)
         describeNumDataset(data, keysNumerical);
 
         let t_data = data.slice(-10);
@@ -51,6 +52,7 @@ function update() {
         table.render();
 
         if (type == "Categorical") {
+            
             if (!(geni["array"].length == 3 && geni["array"].filter(
                 (d, i) => d == ['Banana', 'Apple', 'Orange'][i]).length == 3)) {
                     d3.select("#piechart").style("display", "inherit");    
@@ -87,12 +89,24 @@ function update() {
             histogramVis(convertForHistogram(data, dim_name), 
                     {"width": width/2, "height": height/2, "selector": "#overview_" + dim_name});
         }
+         
+        if (col.generator.inputGenerator) {
+            d3.select("#scatterplot_main_vis").style("display", "inherit");
+            scatterplot(convertForScatterplot(data, {
+                    "x": col.generator.inputGenerator.parent.name, 
+                    "y": dim_name,
+                    "color": "steelblue"
+                }), 
+                    {"width": width,
+                    "height": height,
+                    "selector": "#scatterplot_main_vis"
+                });
+        }
     }
 }
 
 function loadData() {
     
-
     let datasets = ["iris.csv", "automobile.csv"];
     let types = {"iris.csv": {"sepal_length": "num", "sepal_width": "num",
                  "petal_length": "num", "petal_width": "num","iris":"cat"}
@@ -124,7 +138,9 @@ function loadData() {
 }
 
 function convertForPieChart(data, key) {
-    let datapie = d3.rollup(data, v => v.length, d => d[key]);
+    let datapie = d3.rollup(data, 
+                            v => v.length,
+                            d => d[key]);
     return Array.from(datapie).map( d => ({"key": d[0], "value": d[1]}));
 }
 
@@ -133,4 +149,10 @@ function convertForHistogram(data, key) {
     newData.x = key;
     newData.y = 'Count';
     return newData;
+}
+
+function convertForScatterplot(data, keys) {
+    return data.map(d => ({ "x": d[keys.x], 
+                            "y": d[keys.y], 
+                            "color": keys.color }));
 }

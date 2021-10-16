@@ -21,6 +21,7 @@ $(function(){
 
     generateSVG("#pieLoaded", [-width / 2, -height / 2, width, height]);
     generateSVG("#histogramLoaded", [0, 0, width, height]);
+    generateSVG("#scatterplot_main_vis", [0, 0, width, height]);
 });
 
 function describeNumericalDim(a, dim, id) {
@@ -164,6 +165,87 @@ function histogramVis(data, cfg={width: width, height: height}) {
         .call(yAxis);
 }
 
+function scatterplot(data, cfg) {
+    let margin = {top: 25, right: 20, bottom: 35, left: 40};
+    
+    let svg = d3.select(cfg.selector).select("svg");
+
+    let x = d3.scaleLinear()
+        .domain(d3.extent(data, d => d.x)).nice()
+        .range([margin.left, width - margin.right])
+
+    let y = d3.scaleLinear()
+        .domain(d3.extent(data, d => d.y)).nice()
+        .range([cfg.height - margin.bottom, margin.top])
+
+    let xAxis = g => g
+        .attr("transform", `translate(0,${cfg.height - margin.bottom})`)
+        // .call(g => g.select("*").remove())
+        .call(d3.axisBottom(x).ticks(width / 80))
+        .call(g => g.select(".domain").remove())
+        .call(g => g.append("text")
+            .attr("x", cfg.width)
+            .attr("y", margin.bottom - 4)
+            .attr("fill", "currentColor")
+            .attr("text-anchor", "end")
+            .text(data.x))
+
+    let yAxis = g => g
+        .attr("transform", `translate(${margin.left},0)`)
+        .call(d3.axisLeft(y))
+        .call(g => g.select(".domain").remove())
+        .call(g => g.append("text")
+            .attr("x", -margin.left)
+            .attr("y", 10)
+            .attr("fill", "currentColor")
+            .attr("text-anchor", "start")
+            .text(data.y))
+
+    let grid = g => g
+            .attr("stroke", "currentColor")
+            .attr("stroke-opacity", 0.1)
+            .call(g => g.append("g")
+        .selectAll("line")
+        .data(x.ticks())
+        .join("line")
+            .attr("x1", d => 0.5 + x(d))
+            .attr("x2", d => 0.5 + x(d))
+            .attr("y1", margin.top)
+            .attr("y2", cfg.height - margin.bottom))
+        .call(g => g.append("g")
+        .selectAll("line")
+        .data(y.ticks())
+        .join("line")
+            .attr("y1", d => 0.5 + y(d))
+            .attr("y2", d => 0.5 + y(d))
+            .attr("x1", margin.left)
+            .attr("x2", cfg.width - margin.right));
+
+    svg.selectAll(".axis-scatter").selectAll("*").remove();
+
+    svg.append("g")
+        .classed("axis-scatter", true)
+        .call(xAxis);
+    
+    svg.append("g")
+        .classed("axis-scatter", true)
+        .call(yAxis);
+    
+    svg.append("g")
+        .classed("axis-scatter", true)
+        .call(grid);
+    
+    svg.selectAll("circle")
+        .data(data)
+        .join("circle")
+            .attr("stroke", "steelblue")
+            .attr("stroke-width", 1.5)
+            .attr("cx", d => x(d.x))
+            .attr("cy", d => y(d.y))
+            .attr("fill", "steelblue")
+            .attr("r", 3);
+}
+
 function corrMatrix(data, cfg) {
     
 }
@@ -172,4 +254,6 @@ function clearDG() {
     d3.select("#piechart").style("display", "none");
     d3.select("#histogram").style("display", "none");
     d3.select("#vis_info").style("display", "none");
+    d3.select("#scatterplot_main_vis").style("display", "none");
 }
+

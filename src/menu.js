@@ -15,7 +15,7 @@ class NullGenerator extends Generator {
 let dimName = "dimension_holder";
 
 function getIndex(str) {
-    return + str.split("_")[1]
+    return +str.split("_")[1];
 }
 
 function createNewDimension() {
@@ -84,7 +84,7 @@ function loadGenerators(dimIdModel, isFirst=true) {
     let name = "generator_" + d3.selectAll(`.${dimName}`).nodes().length;
     let index = d3.selectAll(`.${dimName}`).nodes().length;
 
-    d3.select("#" + dimName).append("div")
+    d3.select("#" + dimName).append("div").lower()
         .classed("generator", true)
         .style("padding", "3px")
         .attr("id", name)
@@ -130,7 +130,7 @@ function loadGenerators(dimIdModel, isFirst=true) {
     });
     
     let g = datagenerator.columns[getIndex(dimIdModel)].generator;
-    // console.log(index, nGen(g), g.name, dimIdModel, g.name === "delete-me");
+    
     if (nGen(g) > 0 && !isFirst) {
         // if (index == 0) {
         //     g = g.generator;
@@ -160,11 +160,13 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
             // .classed("container", true)
             .classed(parentName, true)
             .text(displayName);
-            
+          
     switch (param.type) {
         case "number": {
-            let value = generator[param.variableName] != 0 ? +generator[param.variableName] : 1; // TODO: default value
-            let min = -value * 10, max = value * 10, step = value / 100;
+            let value = generator[param.variableName] != undefined ? +generator[param.variableName] : 1; // TODO: default value
+            let slider_value = value == 0 ? 1 : value;
+
+            let min = -slider_value * 10, max = slider_value * 10, step = slider_value / 100;
             let nodeText = `
                 <label for="${shortName}" style="border: 1px solid grey; margin: 5px" class="flex-container container">
                     <div style="margin: 5px"> ${displayName} </div>
@@ -220,19 +222,19 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
         }
         case "array": {
             
+            let probsVar = generator.name == "Weighted Categorical" ? "weights" : "quantity";
             let hasNumarray = generator.getGenParams().filter( d => d.type == "numarray").length > 0;
             parent.append("button")
                 .classed(parentName, true)
                 .attr("id", shortName)
                 .text("Add option")
                 .on("mousedown", function(e,d) {
-                    //console.log(generator[param.variableName]);
-
+                    
                     if (generator[param.variableName].length == 3 && generator[param.variableName].filter(
                         (d, i) => d == ['Banana', 'Apple', 'Orange'][i]).length == 3) {
                         generator[param.variableName] = [];
                         if (hasNumarray) {
-                            generator["quantity"] = [];
+                            generator[probsVar] = [];
                         }
                     }
                     
@@ -241,7 +243,9 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
                     datagenerator.changeGeneratorToIndex(getIndex(dimIdModel), generator, getIndex(parentName));
                     
                     parent.select("div").selectAll("div").remove();
-                    
+                    if (hasNumarray) {
+                        generator[probsVar].push(probsVar == "weights" ? 1 : 50);
+                    }
                     loadCategories();
                     update();
                 });
@@ -255,36 +259,61 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
             }
 
             function loadCategories() {
-                
+                    
                 let probsInputs = parent.select("div").selectAll(".inside-input")
                     .data(generator[param.variableName])
                     .join("div")
                         .classed("container", true)
                         .text(d => d)
-                        
+
+                // adding a new node must reset all values                
                 if (hasNumarray) {
-                    let v = (d,i) => generator["quantity"][i] ? 
-                            generator["quantity"][i] : 50; // use the number_lines / length
+                    let newElement = d3.sum(generator[probsVar]) > 1;
+                    let ratio = generator.name == "Weighted Categorical" ? 1 / generator[probsVar].length : 50;
+                    if (newElement) {
+                        for (let i = 0 ; i < generator[probsVar].length ; i++) {
+                            generator[probsVar][i] = ratio;
+                        }
+                    }
+                    
+                    let v = (d,i) => (generator[probsVar][i] && !newElement ? 
+                            generator[probsVar][i] : ratio).toFixed(2);
+                    
+                    let classSlider = `dim_${getIndex(dimIdModel)}_gen_${getIndex(parentName)}`; 
                     probsInputs.append("input")
                             .classed("inside-input", true)
+                            .classed(classSlider, true)
+                            .attr("id", (d,i) => "slider_" + i)
                             .attr("type", "range")
                             .attr("min", 0)
-                            .attr("max", 100)
-                            .attr("step", 1)
-                            .attr("value", v) // TODO: automatic calculation
+                            .attr("max", 1)
+                            .attr("step", .01)
+                            .attr("value", (v)) // TODO: automatic calculation
                             .on("change", function(e,d) {
                                 let n = parent.selectAll("input").nodes();
                                 let index = n.indexOf(this);
                                 let val = d3.select(this).node().value;
                                 
                                 d3.select(this.parentNode).select("div").text(val);
+                                generator[probsVar][index] = +val;
 
-                                generator["quantity"][index] = +val;
                                 datagenerator.changeGeneratorToIndex(getIndex(dimIdModel), generator, getIndex(parentName));
                                 update();
-                            });
-                    probsInputs.append("div")
-                        .text(v)
+                            })
+                            
+                    probsInputs.append("div").text(v);
+
+                    setSliders("." + classSlider, () => {
+                        let values = Array.from(document.querySelectorAll("." + classSlider));
+                        
+                        if (values.length > 0) {
+                            generator[probsVar] = values.map(d => +d.value);
+                            datagenerator.changeGeneratorToIndex(getIndex(dimIdModel), generator, getIndex(parentName));
+
+                            update();
+                        }
+                        
+                    });
                 }
                 
             }
@@ -342,8 +371,12 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
             updateOptions();
             break;
         }
-        case "CategoricalColumn": {
+        case "CategoricalColumn": { // vvv
             
+            function createAuxGen() {
+
+            }
+
             let options = parent.append("select")
                 .classed(parentName, true)
                 .classed("external-update", true)
@@ -351,12 +384,55 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
                 .on("change", function(e,d) {
                     updateOptions();
                     let selectedDim = d3.select(this).node().value;
-                    generator[param.variableName] = 
-                        datagenerator.columns[datagenerator.columns.map(d => d.name).indexOf(selectedDim)].generator;
+                    let selectedGen = datagenerator.columns[datagenerator.columns.map(d => d.name).indexOf(selectedDim)].generator;
+                    generator[param.variableName] = selectedGen;
                     datagenerator.changeGeneratorToIndex(getIndex(dimIdModel), generator, getIndex(parentName));
-                    update();
+
+                    if (generator.name == "Categorical Function") {
+                        let id = `${shortName}_${getIndex(dimName)}_${getIndex(parentName)}`;
+                        parent.select("#"+id).remove();
+
+                        let catArea = parent.append("div")
+                            .attr("id", id)
+                            .text("Categories")
+                            
+                        generator.inputGenIndex = selectedGen.order;
+                        for (let i = 0 ; i < selectedGen.array.length ; i++) {
+                            let cat = selectedGen.array[i];
+                            
+                            let tempArea = catArea.append("div")
+                                .classed("container", true)
+                                .style("margin", "5px");
+                            tempArea.append("div")
+                                .text(cat)
+                                .style("margin-right", "5px")
+                            let optionsCat = tempArea.append("select")
+                                .on("change", function(e,d) {
+
+                                    datagenerator.changeGeneratorToIndex(getIndex(dimIdModel), generator, getIndex(parentName));
+                                })    
+                            updateCategoricalColumn(optionsCat)
+                        }
+                            
+                    } else {
+                        update();
+                    }
+                    // generator.listOfGenerators[cat] = 
+                    //     generator.listOfGenerators[cat] ? generator.listOfGenerators[cat] : "";
                 })
             
+            function updateCategoricalColumn(optionsCategorical) {
+                let cols = datagenerator.columns.filter(d => d.type == "Numeric" && d.name !== dimIdModel);
+                                                            // && !d.display);
+                let names = cols.map((d,i) => d.name);
+
+                optionsCategorical.selectAll("option")
+                    .data(names)
+                    .join("option")
+                        .attr("value", d => d)
+                        .text(d => d);
+            }
+
             function updateOptions() {
                 
                 let cols = datagenerator.columns.filter(d => d.type == "Categorical" 
@@ -374,7 +450,7 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
             break;
         }
         case "numarray": {
-            console.log(param)
+            console.log("numarray param")
             break;
         }
         default: {
