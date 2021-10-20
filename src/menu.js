@@ -1,7 +1,4 @@
 
-// let dimensions = [];
-// dimensions.push([]);
-
 class NullGenerator extends Generator {
     constructor(name){
         super(name);
@@ -15,22 +12,37 @@ class NullGenerator extends Generator {
 let dimName = "dimension_holder";
 
 function getIndex(str) {
-    return +str.split("_")[1];
+    let splited = str.split("_"); 
+    if (splited.length == 2) {
+        return +splited[1];
+    }
+    else {
+        return datagenerator.columns.map(d => d.name).indexOf(str);
+    }
 }
 
-function createNewDimension() {
-    
-    let dimNameModel = "dimension_" + datagenerator.columns.length;
+function getColFromName(name) {
+    return datagenerator.columns[datagenerator.columns.map(d => d.name).indexOf(name)];
+}
+
+function createNewDimension(aux=undefined, auxIndex=0) {
+     
+    let dimNameModel = aux ? "aux_" + getIndex(aux) + "_" + auxIndex :
+                             "dimension_" + datagenerator.columns.length;
     
     datagenerator.addColumn(dimNameModel, new NullGenerator("delete-me"));
     
-    d3.select("#text_placeholder")
-        .text(dimNameModel)
-        .style("padding", "5px")
-    d3.select("#" + dimName).selectAll("*").remove();
+    // auxiliar columns do not generate any data in any case
+    if (aux) {
+        console.log("display false", datagenerator.columns[datagenerator.columns.length-1].name)
+        datagenerator.columns[datagenerator.columns.length-1].display = false;
+    } else {
+        d3.select("#text_placeholder")
+            .text(dimNameModel)
+            .style("padding", "5px")
+        d3.select("#" + dimName).selectAll("*").remove();
+    }
     
-    // for (let i = 0 ; i < datagenerator.columns.length; i++) {
-    // }
     let style_over = "1px solid firebrick";
     let style_out = "1px solid #ddd"
     let newDim = d3.select("#tab_dimension").append("div")
@@ -47,16 +59,21 @@ function createNewDimension() {
                 // .style("background-color", "grey")
                 .style("border-bottom", 0)
                 .style("background-color","white")
-            loadDimension(dimNameModel, false);
-        })
-    newDim.nodes().forEach( d => {
-        d.dispatchEvent(new Event('mousedown'));
-    });   
+            loadDimension(dimNameModel);
+        })  
     
-    update();
+    if (!aux) {
+        newDim.nodes().forEach( d => {
+            d.dispatchEvent(new Event('mousedown'));
+        }); 
+        update();
+    } else {
+        newDim.style("background", "#bbb")
+    }
 }
 
 function loadDimension(dimNameModel) {
+    
     d3.select("#text_placeholder")
         .text(dimNameModel)
         .style("padding", "5px")
@@ -132,9 +149,6 @@ function loadGenerators(dimIdModel, isFirst=true) {
     let g = datagenerator.columns[getIndex(dimIdModel)].generator;
     
     if (nGen(g) > 0 && !isFirst) {
-        // if (index == 0) {
-        //     g = g.generator;
-        // }
         for (let i = 0 ; i < index; i++) {
             g = g.generator;
         }
@@ -189,7 +203,7 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
             break;
         }
         case "string": {
-            let value = generator[param.variableName] || ""; // TODO: default value
+            let value = generator[param.variableName] || "";
             
             parent.append("input")
                 .classed(parentName, true)
@@ -221,6 +235,10 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
             break;
         }
         case "array": {
+            if (generator[param.variableName].length == 3 && generator[param.variableName].filter(
+                (d, i) => d == ['Banana', 'Apple', 'Orange'][i]).length == 3) {
+                generator[param.variableName] = [];
+            }
             
             let probsVar = generator.name == "Weighted Categorical" ? "weights" : "quantity";
             let hasNumarray = generator.getGenParams().filter( d => d.type == "numarray").length > 0;
@@ -255,7 +273,7 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
             
             if (!(generator[param.variableName].length == 3 && generator[param.variableName].filter(
                 (d, i) => d == ['Banana', 'Apple', 'Orange'][i]).length == 3)) {
-                    loadCategories()
+                    loadCategories();
             }
 
             function loadCategories() {
@@ -372,10 +390,6 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
             break;
         }
         case "CategoricalColumn": { // vvv
-            
-            function createAuxGen() {
-
-            }
 
             let options = parent.append("select")
                 .classed(parentName, true)
@@ -384,21 +398,54 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
                 .on("change", function(e,d) {
                     updateOptions();
                     let selectedDim = d3.select(this).node().value;
-                    let selectedGen = datagenerator.columns[datagenerator.columns.map(d => d.name).indexOf(selectedDim)].generator;
+                    if (!selectedDim) {
+                        return;
+                    }
+
+                    let selectedGen = getColFromName(selectedDim).generator;
                     generator[param.variableName] = selectedGen;
                     datagenerator.changeGeneratorToIndex(getIndex(dimIdModel), generator, getIndex(parentName));
 
                     if (generator.name == "Categorical Function") {
-                        let id = `${shortName}_${getIndex(dimName)}_${getIndex(parentName)}`;
+                        let id = `${shortName}_${getIndex(dimIdModel)}_${getIndex(parentName)}`;
                         parent.select("#"+id).remove();
 
                         let catArea = parent.append("div")
                             .attr("id", id)
                             .text("Categories")
-                            
+                        generator.reset();
+
                         generator.inputGenIndex = selectedGen.order;
+                        generator.selectedInterface = {};
+
+                        if (Object.keys(generator).indexOf("inputGenerator") >= 0) {
+                            if (Object.keys(generator.listOfGenerators).length == 0) {
+                                
+                                selectedGen.array.forEach((d, i)=> {
+                                    createNewDimension(dimIdModel, i);
+                                    let auxName = "aux_" + getIndex(dimIdModel) + "_" + i;
+                                    let col = getColFromName(auxName);
+                                    generator.listOfGenerators[d] = col.generator;
+                                })
+
+                            } else {
+                                let sizeInput = Object.keys(generator.listOfGenerators).length;
+                                let sizeSelected = selectedGen.array.length;
+                                console.log("size input", sizeInput, sizeSelected);
+                                if (sizeInput > sizeSelected) {
+                                    for (let i = sizeSelected ; i < sizeInput ; i++ ) {
+                                        createNewDimension(dimIdModel, i);
+                                        let auxName = "aux_" + getIndex(dimIdModel) + "_" + i;
+                                        let col = getColFromName(auxName);
+                                        generator.listOfGenerators[d] = col.generator;
+                                    }
+                                } 
+                            }
+                        }
+
                         for (let i = 0 ; i < selectedGen.array.length ; i++) {
                             let cat = selectedGen.array[i];
+                            let auxName = "aux_" + getIndex(dimIdModel) + "_" + i;
                             
                             let tempArea = catArea.append("div")
                                 .classed("container", true)
@@ -407,23 +454,29 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
                                 .text(cat)
                                 .style("margin-right", "5px")
                             let optionsCat = tempArea.append("select")
+                                .classed("external-update", true)
                                 .on("change", function(e,d) {
+                                    let selectedAux = d3.select(this).node().value;
+                                    console.log("selected aux", selectedAux);
 
+                                    generator.selectedInterface[cat] = selectedAux;
+                                    generator.listOfGenerators[cat] = getColFromName(selectedAux).generator;
                                     datagenerator.changeGeneratorToIndex(getIndex(dimIdModel), generator, getIndex(parentName));
                                 })    
-                            updateCategoricalColumn(optionsCat)
+                            updateCategoricalColumn(optionsCat);
+                            generator.selectedInterface[cat] = auxName;
+                            optionsCat.property("value", auxName);   
                         }
-                            
+                        datagenerator.changeGeneratorToIndex(getIndex(dimIdModel), generator, getIndex(parentName));
+
                     } else {
                         update();
                     }
-                    // generator.listOfGenerators[cat] = 
-                    //     generator.listOfGenerators[cat] ? generator.listOfGenerators[cat] : "";
                 })
             
             function updateCategoricalColumn(optionsCategorical) {
-                let cols = datagenerator.columns.filter(d => d.type == "Numeric" && d.name !== dimIdModel);
-                                                            // && !d.display);
+                let cols = datagenerator.columns.filter(d => d.type == "Numeric" && d.name.includes("aux"));
+                
                 let names = cols.map((d,i) => d.name);
 
                 optionsCategorical.selectAll("option")

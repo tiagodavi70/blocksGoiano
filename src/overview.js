@@ -7,11 +7,7 @@ function describeNumDataset(data, keys) {
 
     d3.select("#overview_stats").selectAll("*").remove()
     for (let dim of keys) {
-        d3.select("#overview_stats")
-            .style("overflow", "auto")
-            .style("max-height", "450px")
-            .style("max-width", "300px")
-        .append("div")
+        d3.select("#overview_stats").append("div")
             .style("padding", "10px")
             .style("max-width", "250px")
             .text(dim)

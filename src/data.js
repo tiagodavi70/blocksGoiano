@@ -4,6 +4,24 @@ let datagenerator = new DataGenerator();
 let width = 270;
 let height = 270;
 
+function getDoubleIndex(str) {
+    return [str.split("_")[1], str.split("_")[2]];
+}
+
+// recover generators from datagenerator
+function updateCategoricalColumn(col) {
+    for (let cat of col.generator.inputArray) {
+        let colGenName = col.generator.selectedInterface[cat];
+        col.generator.listOfGenerators[cat] = getColFromName(colGenName).generator;
+    }
+    return col;
+}
+
+function isNull(col) {
+    return Object.keys(col.generator.listOfGenerators)
+            .filter(d => col.generator.listOfGenerators[d].name == "delete-me").length >= 1;
+}
+
 $(function() {
 
     d3.select("#new_dimension").on("mousedown", function(e, d) {
@@ -26,12 +44,31 @@ function update() {
 
     // let keysCategorical = updateOptions("#pieSelection", "cat"); 
     let keysNumerical = updateOptions("#overview_num", "Numeric");
-    let colsToNotUpdate = datagenerator.columns.filter(d => d.generator.inputGenerator);
+    /* update conditions
+            1 must have an input generator object
+            2 categories must not be nullGenerators
+        after that it updates the categorical function with the right generators
+    */
 
-    // console.log(colsToNotUpdate);
+    for (let i = 0 ; i < datagenerator.columns.length ; i++) {
+        let col = datagenerator.columns[i];
+        if (col.generator.name == "Categorical Function" && 
+                Object.keys(col.generator).indexOf("inputGenerator") > 0) {
+            if (col.generator.inputGenerator == undefined) {
+                col.display = false;
+            } else {
+                let index = getIndex(col.name);
+                let allAux = datagenerator.columns.filter(d => !d.display && getDoubleIndex(d.name)[0] == index);
+                   
+                col.display = allAux.filter(c => c.generator.name == "delete-me").length == 0;
+                datagenerator.columns[i] = updateCategoricalColumn(col);
+            }
+            
+        }
+    }
 
     let dim_name = d3.select("#text_placeholder").text();
-    let col = datagenerator.columns[datagenerator.columns.map(d => d.name).indexOf(dim_name)];
+    let col = getColFromName(dim_name);
     let gen = col.generator;
     let geni = gen;
     for (let i = 0 ; i < nGen(gen) - 1 ; i++) {
@@ -152,7 +189,10 @@ function convertForHistogram(data, key) {
 }
 
 function convertForScatterplot(data, keys) {
-    return data.map(d => ({ "x": d[keys.x], 
-                            "y": d[keys.y], 
-                            "color": keys.color }));
+    let newData = data.map(d => ({  "x": d[keys.x], 
+                                    "y": d[keys.y], 
+                                    "color": keys.color }));
+    newData.x = keys.x;
+    newData.y = keys.y;
+    return newData;
 }

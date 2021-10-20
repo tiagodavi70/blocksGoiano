@@ -2788,6 +2788,7 @@ class SwitchCaseFunction extends _Function{
         this.array = [...new Set(this.array)];
         for(let i=0; i<this.inputArray.length; i++){
             if(!(this.listOfGenerators[this.inputArray[i]])) {
+                console.log("------ inside datagen ------", this.inputArray[i], this.listOfGenerators)
                 let gen = new defaultGenerator();
                 // auxgen.changeGenerator(gen);
                 gen.parent = this;

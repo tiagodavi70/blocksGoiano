@@ -180,14 +180,16 @@ function scatterplot(data, cfg) {
 
     let xAxis = g => g
         .attr("transform", `translate(0,${cfg.height - margin.bottom})`)
-        // .call(g => g.select("*").remove())
         .call(d3.axisBottom(x).ticks(width / 80))
         .call(g => g.select(".domain").remove())
         .call(g => g.append("text")
             .attr("x", cfg.width)
-            .attr("y", margin.bottom - 4)
+            .attr("y", - 4) // margin.bottom 
             .attr("fill", "currentColor")
             .attr("text-anchor", "end")
+            .attr("paint-order","stroke")
+            .attr("stroke","#FFFFFF")
+            .attr("font-weight", "bold")
             .text(data.x))
 
     let yAxis = g => g
@@ -199,6 +201,9 @@ function scatterplot(data, cfg) {
             .attr("y", 10)
             .attr("fill", "currentColor")
             .attr("text-anchor", "start")
+            .attr("paint-order","stroke")
+            .attr("stroke","#FFFFFF")
+            .attr("font-weight", "bold")
             .text(data.y))
 
     let grid = g => g
