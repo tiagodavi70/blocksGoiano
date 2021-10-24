@@ -9,7 +9,6 @@ function generateSVG(id, viewPoint, size={width:width, height:height}) {
     svg.append("g")
         .attr("id", "labels")
         .attr("font-family", "sans-serif")
-        .attr("font-size", 12)
         .attr("text-anchor", "middle");
     return svg;
 }
@@ -18,10 +17,20 @@ $(function(){
     
     generateSVG("#piechart", [-width / 2, -height / 2, width, height]);
     generateSVG("#histogram", [0, 0, width, height]);
+    generateSVG("#boxplot", [0, 0, width, height]);
 
-    generateSVG("#pieLoaded", [-width / 2, -height / 2, width, height]);
-    generateSVG("#histogramLoaded", [0, 0, width, height]);
     generateSVG("#scatterplot_main_vis", [0, 0, width, height]);
+    generateSVG("#beeswarm_main_vis", [0, 0, width, height]);
+    generateSVG("#beeswarm_together_main_vis", [0, 0, width, height]);
+
+    generateSVG("#pieLoaded", [-width / 2, -height / 2, width, height], {width: width/2, height: height/2});
+    generateSVG("#histogramLoaded", [0, 0, width/2, height/2], {width: width/2, height: height/2});
+    
+    generateSVG("#pieSynth", [-width / 2, -height / 2, width, height], {width: width/2, height: height/2});
+    generateSVG("#histogramSynth", [0, 0, width/2, height/2], {width: width/2, height: height/2});
+
+    generateSVG("#scatterplot_comparison", [0, 0, width, height]);
+    
 });
 
 function describeNumericalDim(a, dim, id) {
@@ -39,18 +48,10 @@ function describeNumericalDim(a, dim, id) {
     // d3.quantile(athletes, 0.05, d => d.height)
 }
 
-function updateOptions(id, type) {
-    let f = d => d.type == type;
-    
-    let cols = datagenerator.columns.filter(f); // column.generator
-    let names = cols.map((d,i) => d.name);
-    
-    d3.select(id).selectAll("option")
-        .data(names)
-        .join("option")
-            .attr("value", d => d)
-            .text(d => d);
-    return names;
+function getKeysByType(id, type) {
+        
+    let cols = datagenerator.columns.filter(d => d.type == type); // column.generator
+    return cols.map((d,i) => d.name);
 }
 
 function pieChart(data, cfg={width: width, height: height}) {
@@ -103,8 +104,19 @@ function pieChart(data, cfg={width: width, height: height}) {
             .call(text => text.filter(d => (d.endAngle - d.startAngle) > 0.25).append("tspan")
                 .attr("x", 0)
                 .attr("y", "0.7em")
+                .style("font-size", 15)
                 .attr("fill-opacity", 0.7)
-                .text(d => `${d.data.key}: ${d.data.value.toLocaleString()}`));
+                .attr("fill", "currentColor")
+                .attr("paint-order","stroke")
+                // .attr("stroke","#FFFFFF")
+                .attr("font-weight", "bold")
+                .text(d => `${d.data.key}: ${d.data.value.toLocaleString()}`)
+                .on("mouseover", function(e,d) {
+                    d3.select(this).style("font-size", 25)
+                })
+                .on("mouseout", function(e,d) {
+                    d3.select(this).style("font-size", 15)
+                }));
 }
 
 function histogramVis(data, cfg={width: width, height: height}) {
@@ -165,10 +177,17 @@ function histogramVis(data, cfg={width: width, height: height}) {
         .call(yAxis);
 }
 
-function scatterplot(data, cfg) {
+function scatterplot(data, cfg, regression=false) {
     let margin = {top: 25, right: 20, bottom: 35, left: 40};
     
     let svg = d3.select(cfg.selector).select("svg");
+    
+    let colorIf = !regression ? "steelblue" :
+        d3.scaleOrdinal()
+            .domain([... new Set(data.map(d=>d.color))].sort())
+            .range(["#383880", "#f39800"]);
+
+    let color = !regression ? "steelblue" : (d => colorIf(d.color));
 
     let x = d3.scaleLinear()
         .domain(d3.extent(data, d => d.x)).nice()
@@ -243,12 +262,65 @@ function scatterplot(data, cfg) {
     svg.selectAll("circle")
         .data(data)
         .join("circle")
-            .attr("stroke", "steelblue")
-            .attr("stroke-width", 1.5)
+            .attr("stroke", color)
+            .attr("stroke-width", .5)
             .attr("cx", d => x(d.x))
             .attr("cy", d => y(d.y))
-            .attr("fill", "steelblue")
+            .attr("fill", color)
+            .style("opacity", .5)
             .attr("r", 3);
+    
+    if (regression) {
+        d3.select(cfg.selector).selectAll(".regression").remove();
+        let slider = d3.select(cfg.selector)
+            .append("input")
+            .classed("regression", true)
+            .attr("type", "range")
+            .attr("min", 0)
+            .attr("max", 1)
+            .attr("step", 0.01)
+            .attr("value", .25)
+            .on("input", function(e,d) {
+                let suavizacao = +d3.select(this).node().value;
+                let regressionGenerator = d3.regressionLoess()
+                    .x(d => d.x)
+                    .y(d => d.y)
+                    .bandwidth(suavizacao);
+                let lineGenerator = d3.line()
+                    .x(d => x(d[0]))
+                    .y(d => y(d[1]));
+                svg.selectAll("path.regression").remove()
+                
+                let dataLine = data.filter(d => d["color"] == "loaded");
+                svg.append("path")
+                    .attr("class", "regression")
+                    .datum(regressionGenerator(dataLine))
+                    .style("stroke", "white")
+                    .style("stroke-width", 3)
+                    .attr("d", lineGenerator);
+                svg.append("path")
+                    .attr("class", "regression")
+                    .datum(regressionGenerator(dataLine))
+                    .style("stroke", colorIf("loaded"))
+                    .style("stroke-width", 2)
+                    .attr("d", lineGenerator);
+
+                dataLine = data.filter(d => d["color"] == "synth");
+                svg.append("path")
+                    .attr("class", "regression")
+                    .datum(regressionGenerator(dataLine))
+                    .style("stroke", "black")
+                    .style("stroke-width", 3)
+                    .attr("d", lineGenerator);
+                svg.append("path")
+                    .attr("class", "regression")
+                    .datum(regressionGenerator(dataLine))
+                    .style("stroke", colorIf("synth"))
+                    .style("stroke-width", 2)
+                    .attr("d", lineGenerator);
+            });
+        slider.node().dispatchEvent(new Event('input'));
+    }
 }
 
 function corrMatrix(data, cfg) {
@@ -260,5 +332,7 @@ function clearDG() {
     d3.select("#histogram").style("display", "none");
     d3.select("#vis_info").style("display", "none");
     d3.select("#scatterplot_main_vis").style("display", "none");
+    d3.select("#beeswarm_main_vis").style("display", "none");
+    d3.select("#boxplot").style("display", "none");
 }
 

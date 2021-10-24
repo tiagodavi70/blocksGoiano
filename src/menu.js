@@ -34,7 +34,6 @@ function createNewDimension(aux=undefined, auxIndex=0) {
     
     // auxiliar columns do not generate any data in any case
     if (aux) {
-        console.log("display false", datagenerator.columns[datagenerator.columns.length-1].name)
         datagenerator.columns[datagenerator.columns.length-1].display = false;
     } else {
         d3.select("#text_placeholder")
@@ -70,6 +69,9 @@ function createNewDimension(aux=undefined, auxIndex=0) {
     } else {
         newDim.style("background", "#bbb")
     }
+    d3.select("#overview_stats").append("div")
+        .classed("container", true)
+        .attr("id", "overview_" + dimNameModel)
 }
 
 function loadDimension(dimNameModel) {
@@ -259,7 +261,6 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
                     let element = window.prompt("Input");
                     generator[param.variableName].push(element);
                     datagenerator.changeGeneratorToIndex(getIndex(dimIdModel), generator, getIndex(parentName));
-                    
                     parent.select("div").selectAll("div").remove();
                     if (hasNumarray) {
                         generator[probsVar].push(probsVar == "weights" ? 1 : 50);
@@ -327,13 +328,10 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
                         if (values.length > 0) {
                             generator[probsVar] = values.map(d => +d.value);
                             datagenerator.changeGeneratorToIndex(getIndex(dimIdModel), generator, getIndex(parentName));
-
                             update();
-                        }
-                        
+                        }                      
                     });
                 }
-                
             }
             break;
         }
@@ -431,7 +429,7 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
                             } else {
                                 let sizeInput = Object.keys(generator.listOfGenerators).length;
                                 let sizeSelected = selectedGen.array.length;
-                                console.log("size input", sizeInput, sizeSelected);
+                                
                                 if (sizeInput > sizeSelected) {
                                     for (let i = sizeSelected ; i < sizeInput ; i++ ) {
                                         createNewDimension(dimIdModel, i);
@@ -457,8 +455,6 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
                                 .classed("external-update", true)
                                 .on("change", function(e,d) {
                                     let selectedAux = d3.select(this).node().value;
-                                    console.log("selected aux", selectedAux);
-
                                     generator.selectedInterface[cat] = selectedAux;
                                     generator.listOfGenerators[cat] = getColFromName(selectedAux).generator;
                                     datagenerator.changeGeneratorToIndex(getIndex(dimIdModel), generator, getIndex(parentName));

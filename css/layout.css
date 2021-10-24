@@ -32,3 +32,30 @@
     overflow: auto;
     max-height: 450px;
 }
+
+.box {
+    float: left;
+    height: 20px;
+    width: 20px;
+    margin-bottom: 15px;
+    border: 1px solid black;
+    clear: both;
+}
+
+.color-origin {
+    background-color: #383880;
+}
+
+.color-synth {
+    background-color: #f39800;
+}
+
+.dropdown-margin > * {
+    margin: 2px 8px 2px 8px;
+}
+
+.regression {
+    stroke: black;
+    stroke-width: 1.5px;
+    fill: none;
+}

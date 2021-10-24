@@ -30,8 +30,6 @@ $(function() {
     d3.select("#button_run").on("mousedown", function(e, d) {
         update();
     });
-    
-    loadData();
 });
 
 function generateData() {
@@ -42,8 +40,9 @@ function generateData() {
 
 function update() {
 
-    // let keysCategorical = updateOptions("#pieSelection", "cat"); 
-    let keysNumerical = updateOptions("#overview_num", "Numeric");
+    let keysCategorical = getKeysByType("#pieSelection", "Categorical"); 
+    let keysNumerical = getKeysByType("#overview_num", "Numeric");
+
     /* update conditions
             1 must have an input generator object
             2 categories must not be nullGenerators
@@ -79,8 +78,22 @@ function update() {
     let data = generateData();
     
     clearDG();
+    setViewCompare(data, keysCategorical,keysNumerical, "#pieSynth", "#histogramSynth");
+    updateCompDropdowns(keysNumerical);
+
     if (data[0][dim_name] !== undefined) {
-        describeNumDataset(data, keysNumerical);
+
+        let svg = BoxPlot(data, {
+            x: d => d[dim_name],
+            y: d => d[dim_name],
+            width: 230,
+            height: 150,
+            thresholds: 1
+        });
+        d3.select("#boxplot").style("display", "inherit");
+        d3.select("#boxplot").selectAll("*").remove();
+        d3.select("#boxplot").node().appendChild(svg);
+
 
         let t_data = data.slice(-10);
         t_data.columns = data.columns;
@@ -97,15 +110,7 @@ function update() {
                     pieChart(convertForPieChart(data, dim_name), 
                         {"width": width, "height": height, "selector": "#piechart"});
 
-                    d3.select("#overview_viz").append("div")
-                        .text(dim_name)
-                    .append("div")
-                        .attr("id", "overview_" + dim_name);
-
-                    generateSVG("#overview_" + dim_name, [-width / 4, -height / 4, width / 2, height / 2],
-                                        {width: width / 2, height: height / 2});
-                    pieChart(convertForPieChart(data, dim_name), 
-                            {"width": width/2, "height": height/2, "selector": "#overview_" + dim_name});
+                    describeCatDataset(data, dim_name);
                 }
         } else if (type == "Numeric") {
             d3.select("#histogram").style("display", "inherit");
@@ -113,65 +118,38 @@ function update() {
 
             histogramVis(convertForHistogram(data, dim_name), 
                 {"width": width, "height": height, "selector": "#histogram"});
-
-            describeNumericalDim(data, dim_name, "#vis_info");
-
-            d3.select("#overview_viz").append("div")
-                .text(dim_name)
-            .append("div")    
-                .attr("id", "overview_" + dim_name);
-                        
-            generateSVG("#overview_" + dim_name, [0, 0, width / 2, height / 2],
-                    {width: width / 2, height: height / 2});
-            histogramVis(convertForHistogram(data, dim_name), 
-                    {"width": width/2, "height": height/2, "selector": "#overview_" + dim_name});
+           describeNumericalDim(data, dim_name, "#vis_info");
+           console.log(gen)
+           describeNumDataset(data, dim_name)
         }
          
         if (col.generator.inputGenerator) {
-            d3.select("#scatterplot_main_vis").style("display", "inherit");
-            scatterplot(convertForScatterplot(data, {
-                    "x": col.generator.inputGenerator.parent.name, 
-                    "y": dim_name,
-                    "color": "steelblue"
-                }), 
-                    {"width": width,
-                    "height": height,
-                    "selector": "#scatterplot_main_vis"
+            if (col.generator.name == "Categorical Function") {
+                let svg = BeeswarmChart(data, {
+                    x: d => d[col.name],
+                    width: width,
+                    colorMap: d => d[col.generator.inputGenerator.parent.name]
                 });
+                d3.select("#beeswarm_together_main_vis").style("display", "inherit");
+                d3.select("#beeswarm_together_main_vis").selectAll("*").remove();
+                d3.select("#beeswarm_together_main_vis").node().appendChild(svg);
+
+                d3.select("#beeswarm_main_vis").style("display", "inherit");
+                Beeswarm(convertForBeeswarm(data,
+                    {x: "dimension_0", y: "dimension_1"}), {selector: "#beeswarm_main_vis", width: width, height: height});
+            } else {
+                d3.select("#scatterplot_main_vis").style("display", "inherit");
+                scatterplot(convertForScatterplot(data, {
+                        "x": col.generator.inputGenerator.parent.name, 
+                        "y": dim_name
+                    }), {
+                        "width": width,
+                        "height": height,
+                        "selector": "#scatterplot_main_vis"
+                });
+            }
         }
     }
-}
-
-function loadData() {
-    
-    let datasets = ["iris.csv", "automobile.csv"];
-    let types = {"iris.csv": {"sepal_length": "num", "sepal_width": "num",
-                 "petal_length": "num", "petal_width": "num","iris":"cat"}
-                };
-
-    function updateComparison(dataPath) {
-
-        d3.csv("data/" + dataPath, d3.autoType).then(function(data) {
-            let cat_keys = Object.keys(types[dataPath]).filter( key => types[dataPath][key] == "cat");
-            let num_keys = Object.keys(types[dataPath]).filter( key => types[dataPath][key] == "num");
-
-            pieChart(convertForPieChart(data, cat_keys[0]), {"width": width, "height": height, "selector": "#pieLoaded"});
-            histogramVis(convertForHistogram(data, num_keys[0]), {"width": width, "height": height, "selector": "#histogramLoaded"});
-        })
-    }
-
-    d3.select("#datasets").append("select")
-            .on("change", function(e, d) {
-                let path = d3.select(this).node().value;
-                updateComparison(path)
-            })
-        .selectAll("option")
-        .data(datasets)
-        .join("option")
-            .text(d => d)
-            .attr("value", d => d);
-
-    updateComparison(datasets[0])
 }
 
 function convertForPieChart(data, key) {
@@ -191,7 +169,17 @@ function convertForHistogram(data, key) {
 function convertForScatterplot(data, keys) {
     let newData = data.map(d => ({  "x": d[keys.x], 
                                     "y": d[keys.y], 
-                                    "color": keys.color }));
+                                    "color": d[keys.color] }));
+    newData.x = keys.x;
+    newData.y = keys.y;
+    newData.color = keys.color;
+    return newData;
+}
+
+function convertForBeeswarm(data, keys) {
+    let newData = data.map(d => ({  "Rx": d[keys.x], 
+                                    "Ry": d[keys.y], 
+                                    "color": d[keys.x] }));
     newData.x = keys.x;
     newData.y = keys.y;
     return newData;

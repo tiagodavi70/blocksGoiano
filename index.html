@@ -7,6 +7,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
         </style>
         
+        <script src="https://unpkg.com/d3-regression@1.3.9/dist/d3-regression.min.js"></script>
         <script src="https://d3js.org/d3.v6.js"></script>
 
         <script src="https://code.jquery.com/jquery-3.6.0.js"> </script>
@@ -52,7 +53,6 @@
             </nav>
             <section>
                 <div id="overview" class="tab1">
-                    <!-- <select id="overview_num"> </select> -->
                     <div class="container">
                         <div>
                             <div>
@@ -61,9 +61,6 @@
                             <div class="container scrolllist">
                                 <div id="overview_stats">
     
-                                </div>
-                                <div id="overview_viz">
-                                    
                                 </div>
                             </div>
                         </div> 
@@ -89,17 +86,22 @@
                         <div id="vis_widgets">
                         </div>
                         <div class="container">
-                            <div id="boxplot">
-                            </div>
                             <div id="histogram">
                             </div>
                             <div id="piechart">
                             </div>
                         </div>
-                        <div id="vis_info">
+                        <div>
+                            <div id="vis_info">
+                            </div>
+                            <div id="boxplot">
+                            </div>
                         </div>
                         <div id="scatterplot_main_vis">
-
+                        </div>
+                        <div id="beeswarm_main_vis">
+                        </div>
+                        <div id="beeswarm_together_main_vis">
                         </div>
                     </div>
                 </div>
@@ -108,20 +110,74 @@
                     </div>
                 </div>
                 <div id="comparison" class="tab4">
-                    <div id="datasets">
-
+                    <div id="datasets" class="container" style="margin-top: 5px; margin-bottom: 5px;">
+                        <div>Datasets Available: </div>
                     </div>
-                    <div class="container">
-                        <div id="loaded_data">
-                            <div id="pieLoaded">
+                    <div class="container" style="margin-top: 50px;">
+                        <div class="container">
+                            <div id="loaded_data" style="padding: 15px; margin-left: 10px; background-color: #EEEEEE">
+                                <div>Loaded Dataset</div>
+                                <div id="pieLoaded" style="display: grid">   
+                                    <select> </select>
+                                </div>
+                                <div id="histogramLoaded" style="display: grid">
+                                    <select> </select>
+                                </div>
                             </div>
-                            <div id="histogramLoaded">
+                            <div id="synth_data" style="padding: 15px; background-color: #EEEEEE">
+                                <div>Synthetic Dataset</div>
+                                <div id="pieSynth" style="display: grid">
+                                    <select> </select>
+                                </div>
+                                <div id="histogramSynth" style="display: grid">
+                                    <select> </select>
+                                </div>
                             </div>
                         </div>
-                        <div id="synth_data">
-
+                        <div id="comp_area" style="margin-top: 20px; margin-left: 40px; border: 1px solid grey" class="container">
+                            <div style="margin-top: 20px;">
+                                <div class="container dropdown-margin" style="margin-left: 30px">
+                                    <div class="container">
+                                        <div class="box color-origin" style="margin-right: 5px">       
+                                        </div>
+                                        <div> Loaded </div>
+                                    </div>
+                                    <div class="container">
+                                        <div class="container box color-synth" style="margin-right: 5px; margin-left: 20px">        
+                                        </div>
+                                        <div> Synthetic </div>
+                                    </div>
+                                </div>
+                                <div class="container dropdown-margin">
+                                    <div>
+                                        X
+                                    </div>
+                                    <div id="dropdown_x_origin">
+                                        <select> </select>
+                                    </div>
+                                    <div id="dropdown_x_synth">
+                                        <select> </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="container dropdown-margin">
+                                    <div>
+                                        Y
+                                    </div>
+                                    <div id="dropdown_y_origin">
+                                        <select> </select>
+                                    </div>
+                                    <div id="dropdown_y_synth">
+                                        <select> </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <div id="scatterplot_comparison"></div>
+                            </div>
                         </div>
                     </div>
+                    
                 </div>
             </section>
         </div>
@@ -133,4 +189,8 @@
     <script src="src/vis.js"></script>
     <script src="src/table.js"></script>
     <script src="src/overview.js"></script>
+    <script src="src/beeswarm.js"></script>
+    <script src="src/beeswarm_together.js"></script>
+    <script src="src/boxplot.js"></script>
+    <script src="src/comparison.js"></script>
 </html>
