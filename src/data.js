@@ -49,6 +49,10 @@ function update() {
         after that it updates the categorical function with the right generators
     */
 
+    if (datagenerator.columns.length == 0 ) {
+        return;
+    }
+
     for (let i = 0 ; i < datagenerator.columns.length ; i++) {
         let col = datagenerator.columns[i];
         if (col.generator.name == "Categorical Function" && 
@@ -83,18 +87,6 @@ function update() {
 
     if (data[0][dim_name] !== undefined) {
 
-        let svg = BoxPlot(data, {
-            x: d => d[dim_name],
-            y: d => d[dim_name],
-            width: 230,
-            height: 150,
-            thresholds: 1
-        });
-        d3.select("#boxplot").style("display", "inherit");
-        d3.select("#boxplot").selectAll("*").remove();
-        d3.select("#boxplot").node().appendChild(svg);
-
-
         let t_data = data.slice(-10);
         t_data.columns = data.columns;
         d3.select("#table_vis").selectAll("*").remove();
@@ -118,9 +110,19 @@ function update() {
 
             histogramVis(convertForHistogram(data, dim_name), 
                 {"width": width, "height": height, "selector": "#histogram"});
-           describeNumericalDim(data, dim_name, "#vis_info");
-           console.log(gen)
-           describeNumDataset(data, dim_name)
+            let svg = BoxPlot(data, {
+                x: d => d[dim_name],
+                y: d => d[dim_name],
+                width: 230,
+                height: 150,
+                thresholds: 1
+            });
+            d3.select("#boxplot").style("display", "inherit");
+            d3.select("#boxplot").selectAll("*").remove();
+            d3.select("#boxplot").node().appendChild(svg);
+            
+            describeNumericalDim(data, dim_name, "#vis_info");
+            describeNumDataset(data, dim_name)
         }
          
         if (col.generator.inputGenerator) {
@@ -163,6 +165,7 @@ function convertForHistogram(data, key) {
     let newData = d3.bin().thresholds(40)(data.map( d => d[key]));
     newData.x = key;
     newData.y = 'Count';
+    newData.mean = d3.mean(data, d => d[key])
     return newData;
 }
 

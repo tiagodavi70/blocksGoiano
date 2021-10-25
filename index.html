@@ -53,7 +53,19 @@
             </nav>
             <section>
                 <div id="overview" class="tab1">
-                    <div class="container">
+                    <div class="container" style="margin: 50px;">
+                        <div id="settings" style="margin-right: 100px;">
+                            <div>
+                                Number of data points:
+                                <div>
+                                    <input type="range" min="100" max="10000" value="100" step="100">
+                                    <div id="label_datapoints"> 100 </div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 50px;">
+                                <button> Export Model </button>
+                            </div>
+                        </div>
                         <div>
                             <div>
                                 Dimensions
@@ -113,7 +125,7 @@
                     <div id="datasets" class="container" style="margin-top: 5px; margin-bottom: 5px;">
                         <div>Datasets Available: </div>
                     </div>
-                    <div class="container" style="margin-top: 50px;">
+                    <div class="container" style="margin-top: 5px;">
                         <div class="container">
                             <div id="loaded_data" style="padding: 15px; margin-left: 10px; background-color: #EEEEEE">
                                 <div>Loaded Dataset</div>
@@ -134,7 +146,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div id="comp_area" style="margin-top: 20px; margin-left: 40px; border: 1px solid grey" class="container">
+                        <div id="comp_area" style="margin-left: 40px; border: 1px solid grey" class="container">
                             <div style="margin-top: 20px;">
                                 <div class="container dropdown-margin" style="margin-left: 30px">
                                     <div class="container">
@@ -159,7 +171,6 @@
                                         <select> </select>
                                     </div>
                                 </div>
-                                
                                 <div class="container dropdown-margin">
                                     <div>
                                         Y
@@ -171,7 +182,10 @@
                                         <select> </select>
                                     </div>
                                 </div>
-                            </div>
+                                <div id="suavizacao_parent">
+                                    
+                                </div>
+                                </div>
                             <div>
                                 <div id="scatterplot_comparison"></div>
                             </div>

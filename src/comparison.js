@@ -56,8 +56,8 @@ function loadScatterplot(node) {
         "y": "y",
         "color": "source"
     }), {
-        "width": width,
-        "height": height,
+        "width": width * 2,
+        "height": height * 2,
         "selector": "#scatterplot_comparison"
     }, regression=true);
 }

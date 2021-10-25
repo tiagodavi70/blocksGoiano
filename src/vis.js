@@ -29,7 +29,7 @@ $(function(){
     generateSVG("#pieSynth", [-width / 2, -height / 2, width, height], {width: width/2, height: height/2});
     generateSVG("#histogramSynth", [0, 0, width/2, height/2], {width: width/2, height: height/2});
 
-    generateSVG("#scatterplot_comparison", [0, 0, width, height]);
+    generateSVG("#scatterplot_comparison", [0, 0, width*2, height*2],  {width: width*2, height: height*2});
     
 });
 
@@ -166,6 +166,25 @@ function histogramVis(data, cfg={width: width, height: height}) {
             .attr("height", d => y(0) - y(d.length))
             .attr("fill", color);
 
+    svg.selectAll(".line_avg").remove();
+    svg.append("line")
+        .classed("line_avg", true)
+        .style("stroke", "firebrick")
+        .style("stroke-width", 5)
+        .style("opacity", .4)
+        .attr("x1", x(data.mean))
+        .attr("y1", y.range()[0])
+        .attr("x2", x(data.mean))
+        .attr("y2", y.range()[1]);
+
+    svg.append("text")
+        .classed("line_avg", true)
+        .style("fill", "firebrick")
+        .style("opacity", .85)
+        .attr("x", x(data.mean))
+        .attr("y", y.range()[1])
+        .text("Mean")
+
     svg.selectAll(".axis-histogram").selectAll("*").remove();
 
     svg.append("g")
@@ -175,6 +194,7 @@ function histogramVis(data, cfg={width: width, height: height}) {
     svg.append("g")
         .classed("axis-histogram", true)
         .call(yAxis);
+
 }
 
 function scatterplot(data, cfg, regression=false) {
@@ -190,89 +210,138 @@ function scatterplot(data, cfg, regression=false) {
     let color = !regression ? "steelblue" : (d => colorIf(d.color));
 
     let x = d3.scaleLinear()
-        .domain(d3.extent(data, d => d.x)).nice()
-        .range([margin.left, width - margin.right])
+        .domain(d3.extent(data, d => d.x))
+        .range([margin.left, cfg.width - margin.right])
 
     let y = d3.scaleLinear()
-        .domain(d3.extent(data, d => d.y)).nice()
+        .domain(d3.extent(data, d => d.y))
         .range([cfg.height - margin.bottom, margin.top])
 
-    let xAxis = g => g
-        .attr("transform", `translate(0,${cfg.height - margin.bottom})`)
-        .call(d3.axisBottom(x).ticks(width / 80))
-        .call(g => g.select(".domain").remove())
-        .call(g => g.append("text")
-            .attr("x", cfg.width)
-            .attr("y", - 4) // margin.bottom 
-            .attr("fill", "currentColor")
-            .attr("text-anchor", "end")
-            .attr("paint-order","stroke")
-            .attr("stroke","#FFFFFF")
-            .attr("font-weight", "bold")
-            .text(data.x))
+    // let xAxis = g => g
+    //     .attr("transform", `translate(0,${cfg.height - margin.bottom})`)
+    //     .call(d3.axisBottom(x).ticks(width / 80))
+    //     .call(g => g.select(".domain").remove())
+    //     .call(g => g.append("text")
+    //         .attr("x", cfg.width)
+    //         .attr("y", - 4) // margin.bottom 
+    //         .attr("fill", "currentColor")
+    //         .attr("text-anchor", "end")
+    //         .attr("paint-order","stroke")
+    //         .attr("stroke","#FFFFFF")
+    //         .attr("font-weight", "bold")
+    //         .text(data.x))
 
-    let yAxis = g => g
-        .attr("transform", `translate(${margin.left},0)`)
-        .call(d3.axisLeft(y))
-        .call(g => g.select(".domain").remove())
-        .call(g => g.append("text")
-            .attr("x", -margin.left)
-            .attr("y", 10)
-            .attr("fill", "currentColor")
-            .attr("text-anchor", "start")
-            .attr("paint-order","stroke")
-            .attr("stroke","#FFFFFF")
-            .attr("font-weight", "bold")
-            .text(data.y))
+    // let yAxis = g => g
+    //     .attr("transform", `translate(${margin.left},0)`)
+    //     .call(d3.axisLeft(y))
+    //     .call(g => g.select(".domain").remove())
+    //     .call(g => g.append("text")
+    //         .attr("x", -margin.left)
+    //         .attr("y", 10)
+    //         .attr("fill", "currentColor")
+    //         .attr("text-anchor", "start")
+    //         .attr("paint-order","stroke")
+    //         .attr("stroke","#FFFFFF")
+    //         .attr("font-weight", "bold")
+    //         .text(data.y))
 
-    let grid = g => g
+    // let grid = g => g
+    //         .attr("stroke", "currentColor")
+    //         .attr("stroke-opacity", 0.1)
+    //         .call(g => g.append("g")
+    //     .selectAll("line")
+    //     .data(x.ticks())
+    //     .join("line")
+    //         .attr("x1", d => 0.5 + x(d))
+    //         .attr("x2", d => 0.5 + x(d))
+    //         .attr("y1", margin.top)
+    //         .attr("y2", cfg.height - margin.bottom))
+    //     .call(g => g.append("g")
+    //     .selectAll("line")
+    //     .data(y.ticks())
+    //     .join("line")
+    //         .attr("y1", d => 0.5 + y(d))
+    //         .attr("y2", d => 0.5 + y(d))
+    //         .attr("x1", margin.left)
+    //         .attr("x2", cfg.width - margin.right));
+
+
+    let k = cfg.height / cfg.width;
+    let = xAxis = (g, x) => g
+        .attr("transform", `translate(0,${cfg.height})`)
+        .call(d3.axisTop(x).ticks(12))
+        // .call(g => g.select(".domain").attr("display", "none"))
+
+    let yAxis = (g, y) => g
+        .call(d3.axisRight(y).ticks(12))
+        // .call(g => g.select(".domain").attr("display", "none"))
+
+    let grid = (g, x, y) => g
             .attr("stroke", "currentColor")
             .attr("stroke-opacity", 0.1)
-            .call(g => g.append("g")
-        .selectAll("line")
-        .data(x.ticks())
-        .join("line")
+        .call(g => g
+            .selectAll(".x")
+            .data(x.ticks(12))
+            .join(
+                enter => enter.append("line").attr("class", "x").attr("y2",cfg.height),
+                update => update,
+                exit => exit.remove()
+            )
             .attr("x1", d => 0.5 + x(d))
-            .attr("x2", d => 0.5 + x(d))
-            .attr("y1", margin.top)
-            .attr("y2", cfg.height - margin.bottom))
-        .call(g => g.append("g")
-        .selectAll("line")
-        .data(y.ticks())
-        .join("line")
+            .attr("x2", d => 0.5 + x(d)))
+        .call(g => g
+            .selectAll(".y")
+            .data(y.ticks(12 * k))
+            .join(
+                enter => enter.append("line").attr("class", "y").attr("x2", cfg.width),
+                update => update,
+                exit => exit.remove()
+            )
             .attr("y1", d => 0.5 + y(d))
-            .attr("y2", d => 0.5 + y(d))
-            .attr("x1", margin.left)
-            .attr("x2", cfg.width - margin.right));
+            .attr("y2", d => 0.5 + y(d)));
 
     svg.selectAll(".axis-scatter").selectAll("*").remove();
 
-    svg.append("g")
+    let gx = svg.append("g")
         .classed("axis-scatter", true)
-        .call(xAxis);
+        // .call(xAxis);
     
-    svg.append("g")
+    let gy = svg.append("g")
         .classed("axis-scatter", true)
-        .call(yAxis);
+        // .call(yAxis);
     
-    svg.append("g")
+    let gGrid = svg.append("g")
         .classed("axis-scatter", true)
-        .call(grid);
+        // .call(grid);
     
-    svg.selectAll("circle")
+    // let gDot = svg.selectAll("circle")
+    //     .data(data)
+    //     .join("circle")
+    //         .attr("stroke", color)
+    //         .attr("stroke-width", .5)
+    //         .attr("cx", d => x(d.x))
+    //         .attr("cy", d => y(d.y))
+    //         .attr("fill", color)
+    //         .style("opacity", .5)
+    //         .attr("r", 3);   
+            
+    const gDot = svg.append("g")
+      .classed("axis-scatter", true)
+      .attr("fill", "none")
+      .style("opacity", .5)
+      .attr("stroke-linecap", "round");
+
+    gDot.selectAll("path")
         .data(data)
-        .join("circle")
-            .attr("stroke", color)
-            .attr("stroke-width", .5)
-            .attr("cx", d => x(d.x))
-            .attr("cy", d => y(d.y))
-            .attr("fill", color)
-            .style("opacity", .5)
-            .attr("r", 3);
+        .join("path")
+        .attr("d", d => `M${x(d.x)},${y(d.y)}h0`)
+        .attr("stroke", color);
     
+    let lines = [];
     if (regression) {
         d3.select(cfg.selector).selectAll(".regression").remove();
-        let slider = d3.select(cfg.selector)
+        d3.select("#suavizacao_parent").append("div").text("Suavizacao")
+        let slider = d3.select("#suavizacao_parent")
             .append("input")
             .classed("regression", true)
             .attr("type", "range")
@@ -280,8 +349,11 @@ function scatterplot(data, cfg, regression=false) {
             .attr("max", 1)
             .attr("step", 0.01)
             .attr("value", .25)
+            .style("margin", "30px")
             .on("input", function(e,d) {
                 let suavizacao = +d3.select(this).node().value;
+                d3.select("#label_suavizacao").text(suavizacao);
+
                 let regressionGenerator = d3.regressionLoess()
                     .x(d => d.x)
                     .y(d => d.y)
@@ -292,35 +364,64 @@ function scatterplot(data, cfg, regression=false) {
                 svg.selectAll("path.regression").remove()
                 
                 let dataLine = data.filter(d => d["color"] == "loaded");
-                svg.append("path")
+                let l1 = svg.append("path")
                     .attr("class", "regression")
+                    .style("opacity", .5)
                     .datum(regressionGenerator(dataLine))
-                    .style("stroke", "white")
-                    .style("stroke-width", 3)
+                    .style("stroke", "black")
+                    .style("stroke-width", "0.3%")
                     .attr("d", lineGenerator);
-                svg.append("path")
+                let l2 = svg.append("path")
                     .attr("class", "regression")
+                    .style("opacity", .5)
                     .datum(regressionGenerator(dataLine))
                     .style("stroke", colorIf("loaded"))
-                    .style("stroke-width", 2)
+                    .style("stroke-width", "0.2%")
                     .attr("d", lineGenerator);
 
                 dataLine = data.filter(d => d["color"] == "synth");
-                svg.append("path")
+                let l3 = svg.append("path")
                     .attr("class", "regression")
+                    .style("opacity", .5)
                     .datum(regressionGenerator(dataLine))
                     .style("stroke", "black")
-                    .style("stroke-width", 3)
+                    .style("stroke-width", "0.3%")
                     .attr("d", lineGenerator);
-                svg.append("path")
+                let l4 = svg.append("path")
                     .attr("class", "regression")
+                    .style("opacity", .5)
                     .datum(regressionGenerator(dataLine))
                     .style("stroke", colorIf("synth"))
-                    .style("stroke-width", 2)
+                    .style("stroke-width", "0.2%")
                     .attr("d", lineGenerator);
+                lines = [l1, l2, l3, l4];
             });
+        d3.select("#suavizacao_parent").append("div").attr("id", "label_suavizacao").text("0.25");
         slider.node().dispatchEvent(new Event('input'));
     }
+    const zoom = d3.zoom()
+        .scaleExtent([0.5, 32])
+        .on("zoom", zoomed);
+
+    svg.call(zoom).call(zoom.transform, d3.zoomIdentity);
+
+    function zoomed({transform}) {
+        const zx = transform.rescaleX(x).interpolate(d3.interpolateRound);
+        const zy = transform.rescaleY(y).interpolate(d3.interpolateRound);
+
+        gDot.attr("transform", transform).style("stroke-width", 5 / transform.k);
+        gx.call(xAxis, zx);
+        gy.call(yAxis, zy);
+        gGrid.call(grid, zx, zy);
+        lines.forEach(gLine => gLine.attr("transform", transform)) //.style("stroke-width", "0.1%")) // transform.k / 100000
+    }
+    Object.assign(svg.node(), {
+        reset() {
+            svg.transition()
+                .duration(750)
+                .call(zoom.transform, d3.zoomIdentity);
+        }
+    });
 }
 
 function corrMatrix(data, cfg) {
