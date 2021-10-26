@@ -340,7 +340,10 @@ function scatterplot(data, cfg, regression=false) {
     let lines = [];
     if (regression) {
         d3.select(cfg.selector).selectAll(".regression").remove();
-        d3.select("#suavizacao_parent").append("div").text("Suavizacao")
+        d3.select("#suavizacao_parent")
+            .classed("regression", true)
+        .append("div")
+            .text("Suavizacao")
         let slider = d3.select("#suavizacao_parent")
             .append("input")
             .classed("regression", true)
@@ -426,6 +429,59 @@ function scatterplot(data, cfg, regression=false) {
 
 function corrMatrix(data, cfg) {
     
+}
+
+function treemap(data, cfg) {
+
+    let root = data;
+    let svg = d3.select(cfg.selector).select("svg");
+             
+    let treeLayout = d3.treemap()
+        .size([cfg.width, cfg.height])
+        .tile(d3.treemapSquarify)
+        // .paddingOuter(2)
+        // .paddingInner(2)
+        .padding(5)
+
+    treeLayout(root);
+    console.log("root", root);
+
+    let color = d3.scaleOrdinal(d3.schemeCategory10);
+
+    let cells = svg.selectAll('g')
+        .data(d3.group(root, d => d.height))
+        .join('g')
+            .selectAll("rect")
+            .data(d => d[1])
+            .join("rect")
+                .attr('x', function(d) { return d.x0; })
+                .attr('y', function(d) { return d.y0; })
+                .attr('width', function(d) { return d.x1 - d.x0; })
+                .attr('height', function(d) { return d.y1 - d.y0; })
+                .attr("fill", function (d) { console.log("d data", d.data);  return color(d.data[0]); })
+                .attr('opacity', '0.3');
+
+    let te = svg.selectAll('g')
+        .data(d3.group(root, d => d.height))
+        .join('g')
+            .selectAll("text")
+            .data(d => d[1])
+            .join("text")
+                .text(function (d) {
+                    return d.data[0];
+                })
+                .attr('x', function (d, i) {
+                    return d.x0 + (d.x1-d.x0)/2;
+                })
+                .attr('y', function (d) {
+                    if (d.children)
+                        return d.y0 + 25/2;
+                    else 
+                        return d.y0 + (d.y1-d.y0)/2;
+                })
+                .attr('font-size', '10px')
+                .attr('text-anchor','middle')
+                .attr('fill', 'white');
 }
 
 function clearDG() {

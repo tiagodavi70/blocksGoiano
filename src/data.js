@@ -82,17 +82,17 @@ function update() {
     let data = generateData();
     
     clearDG();
-    setViewCompare(data, keysCategorical,keysNumerical, "#pieSynth", "#histogramSynth");
-    updateCompDropdowns(keysNumerical);
 
     if (data[0][dim_name] !== undefined) {
 
         let t_data = data.slice(-10);
         t_data.columns = data.columns;
-        d3.select("#table_vis").selectAll("*").remove();
-        let table = new Table("#table_vis", t_data, {size: "300px"})
-        table.render();
+        updateTable(t_data)
 
+        setViewCompare(data, keysCategorical,keysNumerical, "#pieSynth", "#histogramSynth");
+        updateCompDropdowns(keysNumerical);
+        updateDropdownsVis(keysCategorical, keysNumerical, data);
+        
         if (type == "Categorical") {
             
             if (!(geni["array"].length == 3 && geni["array"].filter(
