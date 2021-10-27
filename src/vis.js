@@ -5,6 +5,7 @@ function generateSVG(id, viewPoint, size={width:width, height:height}) {
         .attr("height", size.height)
         .attr("viewBox", viewPoint)
     svg.append("g")
+        .attr("id", "ggroup")
         .attr("stroke", "white")
     svg.append("g")
         .attr("id", "labels")
@@ -37,9 +38,9 @@ function describeNumericalDim(a, dim, id) {
     let arr = a.map(d => d[dim]);
     if (arr[0] !== undefined) {
         d3.select(id)
-            .html(`<div>
-                Mean: ${d3.mean(arr).toFixed(3)} <br>
-                Median: ${d3.median(arr).toFixed(3)} <br>
+            .html(`<div style="align-self: center;">
+                <div style="font-weight: bold; font-size: 15px; color: firebrick;"> Mean: ${d3.mean(arr).toFixed(3)} </div>
+                <div style="font-weight: bold; font-size: 15px; color: black;"> Median: ${d3.median(arr).toFixed(3)} </div>
                 Standard Deviation: ${d3.deviation(arr).toFixed(3)} <br>
                 Variance: ${d3.variance(arr).toFixed(3)} <br>
                 Min-Max: [${d3.min(arr).toFixed(3)}, ${d3.max(arr).toFixed(3)}] <br>
@@ -370,8 +371,8 @@ function scatterplot(data, cfg, regression=false) {
                     .y(d => y(d[1]));
                 svg.selectAll("path.regression").remove();
                 
-                let dataLine = data.filter(d => d["color"] == "loaded");
-                let predictionLoaded = regressionGenerator(dataLine)
+                let dataLoaded = data.filter(d => d["color"] == "loaded");
+                let predictionLoaded = regressionGenerator(dataLoaded)
                 let l1 = svg.append("path")
                     .attr("class", "regression")
                     .style("opacity", .5)
@@ -387,8 +388,8 @@ function scatterplot(data, cfg, regression=false) {
                     .style("stroke-width", "0.2%")
                     .attr("d", lineGenerator);
 
-                dataLine = data.filter(d => d["color"] == "synth");
-                let predictionSynth = regressionGenerator(dataLine);
+                let dataSynth = data.filter(d => d["color"] == "synth");
+                let predictionSynth = regressionGenerator(dataSynth);
                 console.log("prediction", predictionLoaded, predictionSynth);
                 let l3 = svg.append("path")
                     .attr("class", "regression")
@@ -408,9 +409,17 @@ function scatterplot(data, cfg, regression=false) {
 
                 d3.select("#error-x").text("Error X-Axis: " +
                     mse(predictionLoaded.map(d=>d[0]), predictionSynth.map(d=>d[0]) ).toFixed(3));
-                    
                 d3.select("#error-y").text("Error Y-Axis: " +
                     mse(predictionLoaded.map(d=>d[1]), predictionSynth.map(d=>d[1]) ).toFixed(3));
+                
+                let size = Math.min(dataLoaded.length, dataSynth.length)
+                d3.select("#error-total").text("Total Error: " +
+                    mse(dataLoaded.slice(0,size).map(d => Math.sqrt(d.x*d.x + d.y*d.y) ),
+                        dataSynth.slice(0,size).map(d =>   Math.sqrt(d.x*d.x + d.y*d.y) )).toFixed(3));
+                        
+                // d3.select("#error-total").text("Total Error: " +
+                //     mse(predictionLoaded.map(d => Math.sqrt(d[0]*d[0] + d[1]*d[1]) ),
+                //         predictionSynth.map(d =>  Math.sqrt(d[0]*d[0] + d[1]*d[1]) )).toFixed(3));
             });
         slider_area.append("div").attr("id", "label_suavizacao").text("0.25");
         slider_area.append("div")
@@ -419,6 +428,10 @@ function scatterplot(data, cfg, regression=false) {
             .style("margin-top", "30px");
         slider_area.append("div")
             .attr("id", "error-y")
+            .style("flex-direction", "column")
+            .style("margin-top", "10px");
+        slider_area.append("div")
+            .attr("id", "error-total")
             .style("flex-direction", "column")
             .style("margin-top", "10px");
         slider.node().dispatchEvent(new Event('input'));
@@ -455,7 +468,9 @@ function corrMatrix(data, cfg) {
 function treemap(data, cfg) {
 
     let svg = d3.select(cfg.selector).select("svg");
-             
+    svg.select("#ggroup").remove();
+    svg.select("#labels").remove();
+
     let treeLayout = d3.treemap()
         .size([cfg.width, cfg.height])
         .tile(d3.treemapSquarify)
@@ -465,7 +480,7 @@ function treemap(data, cfg) {
 
     treeLayout(data);
 
-    let color = d3.scaleOrdinal(d3.schemeCategory10);
+    let color = d3.scaleOrdinal(d3.schemeTableau10);
 
     let cells = svg.selectAll('g')
         .data(d3.group(data, d => d.height))
@@ -477,8 +492,8 @@ function treemap(data, cfg) {
                 .attr('y', function(d) { return d.y0; })
                 .attr('width', function(d) { return d.x1 - d.x0; })
                 .attr('height', function(d) { return d.y1 - d.y0; })
-                .attr("fill", function (d) { console.log("d data", d.data);  return color(d.data[0]); })
-                .attr('opacity', '0.3');
+                .attr("fill", function (d) { return color(d.data[0]); })
+                .attr('opacity', '.78');
 
     let te = svg.selectAll('g')
         .data(d3.group(data, d => d.height))
@@ -487,7 +502,7 @@ function treemap(data, cfg) {
             .data(d => d[1])
             .join("text")
                 .text(function (d) {
-                    return d.data[0];
+                    if (d.data[0] != null) return d.data[0] + " - " + d.value;
                 })
                 .attr('x', function (d, i) {
                     return d.x0 + (d.x1-d.x0)/2;
@@ -498,9 +513,10 @@ function treemap(data, cfg) {
                     else 
                         return d.y0 + (d.y1-d.y0)/2;
                 })
-                .attr('font-size', '10px')
+                .attr('font-size', '12px')
+                .attr('font-weight', 'bold')
                 .attr('text-anchor','middle')
-                .attr('fill', 'white');
+                .attr('fill', 'black');
 }
 
 function clearDG() {
