@@ -173,10 +173,10 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
 
     let parent = d3.select("#" + dimName).select("#" + parentName)
         .append("div")
-            // .classed("container", true)
             .classed(parentName, true)
             .text(displayName);
           
+    console.log("widget", param, generator)
     switch (param.type) {
         case "number": {
             let value = generator[param.variableName] != undefined ? +generator[param.variableName] : 1; // TODO: default value
@@ -196,8 +196,14 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
 
             d3.select(`input#${shortName}.${parentName}`).on("change", function(d,e) {
                 let val = d3.select(this).node().value;
-                d3.select(`div#${displayName}_value.${parentName}_display`).text(val);
                 
+                // TODO: CONTINUAR DAQUI
+                // if (generator.name == "Range Filter") {
+                //     console.log(parent.node())
+                //     return;
+                // } 
+
+                d3.select(`div#${displayName}_value.${parentName}_display`).text(val);
                 generator[param.variableName] = +val;
                 datagenerator.changeGeneratorToIndex(getIndex(dimIdModel), generator, getIndex(parentName) );
                 update();

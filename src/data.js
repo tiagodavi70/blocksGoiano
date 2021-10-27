@@ -114,7 +114,7 @@ function update() {
                 x: d => d[dim_name],
                 y: d => d[dim_name],
                 width: 230,
-                height: 150,
+                height: 270,
                 thresholds: 1
             });
             d3.select("#boxplot").style("display", "inherit");
@@ -186,4 +186,14 @@ function convertForBeeswarm(data, keys) {
     newData.x = keys.x;
     newData.y = keys.y;
     return newData;
+}
+
+function convertForTreemap(data, l1, l2) {
+    
+    let rollupData = d3.rollup(data, v => v.length, d => d[l1], d => d[l2]);
+    let childrenAccessorFn = ([ key, value ]) => value.size && Array.from(value);
+
+    return d3.hierarchy([null, rollupData], childrenAccessorFn)
+        .sum(([key,value]) => value)
+        .sort((a, b) => b.value - a.value)
 }

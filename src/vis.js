@@ -339,20 +339,24 @@ function scatterplot(data, cfg, regression=false) {
     
     let lines = [];
     if (regression) {
-        d3.select(cfg.selector).selectAll(".regression").remove();
-        d3.select("#suavizacao_parent")
-            .classed("regression", true)
-        .append("div")
-            .text("Suavizacao")
-        let slider = d3.select("#suavizacao_parent")
+        // console.log(cfg.selector, d3.select(cfg.selector).selectAll(".regression").nodes());
+        d3.select("#suavizacao_parent").selectAll(".regression").remove();
+        let slider_area = d3.select("#suavizacao_parent")
+            .append("div")
+                .classed("regression", true)
+                .style("flex-direction", "column")
+                .style("margin-top", "40px")
+                .style("margin-left", "25px")
+        slider_area.append("div")
+            .text("Smooth factor")
+        let slider = slider_area
             .append("input")
-            .classed("regression", true)
             .attr("type", "range")
             .attr("min", 0)
             .attr("max", 1)
             .attr("step", 0.01)
             .attr("value", .25)
-            .style("margin", "30px")
+            .style("margin", "10px 5px 10px 0px")
             .on("input", function(e,d) {
                 let suavizacao = +d3.select(this).node().value;
                 d3.select("#label_suavizacao").text(suavizacao);
@@ -364,42 +368,59 @@ function scatterplot(data, cfg, regression=false) {
                 let lineGenerator = d3.line()
                     .x(d => x(d[0]))
                     .y(d => y(d[1]));
-                svg.selectAll("path.regression").remove()
+                svg.selectAll("path.regression").remove();
                 
                 let dataLine = data.filter(d => d["color"] == "loaded");
+                let predictionLoaded = regressionGenerator(dataLine)
                 let l1 = svg.append("path")
                     .attr("class", "regression")
                     .style("opacity", .5)
-                    .datum(regressionGenerator(dataLine))
+                    .datum(predictionLoaded)
                     .style("stroke", "black")
                     .style("stroke-width", "0.3%")
                     .attr("d", lineGenerator);
                 let l2 = svg.append("path")
                     .attr("class", "regression")
                     .style("opacity", .5)
-                    .datum(regressionGenerator(dataLine))
+                    .datum(predictionLoaded)
                     .style("stroke", colorIf("loaded"))
                     .style("stroke-width", "0.2%")
                     .attr("d", lineGenerator);
 
                 dataLine = data.filter(d => d["color"] == "synth");
+                let predictionSynth = regressionGenerator(dataLine);
+                console.log("prediction", predictionLoaded, predictionSynth);
                 let l3 = svg.append("path")
                     .attr("class", "regression")
                     .style("opacity", .5)
-                    .datum(regressionGenerator(dataLine))
+                    .datum(predictionSynth)
                     .style("stroke", "black")
                     .style("stroke-width", "0.3%")
                     .attr("d", lineGenerator);
                 let l4 = svg.append("path")
                     .attr("class", "regression")
                     .style("opacity", .5)
-                    .datum(regressionGenerator(dataLine))
+                    .datum(predictionSynth)
                     .style("stroke", colorIf("synth"))
                     .style("stroke-width", "0.2%")
                     .attr("d", lineGenerator);
                 lines = [l1, l2, l3, l4];
+
+                d3.select("#error-x").text("Error X-Axis: " +
+                    mse(predictionLoaded.map(d=>d[0]), predictionSynth.map(d=>d[0]) ).toFixed(3));
+                    
+                d3.select("#error-y").text("Error Y-Axis: " +
+                    mse(predictionLoaded.map(d=>d[1]), predictionSynth.map(d=>d[1]) ).toFixed(3));
             });
-        d3.select("#suavizacao_parent").append("div").attr("id", "label_suavizacao").text("0.25");
+        slider_area.append("div").attr("id", "label_suavizacao").text("0.25");
+        slider_area.append("div")
+            .attr("id", "error-x")
+            .style("flex-direction", "column")
+            .style("margin-top", "30px");
+        slider_area.append("div")
+            .attr("id", "error-y")
+            .style("flex-direction", "column")
+            .style("margin-top", "10px");
         slider.node().dispatchEvent(new Event('input'));
     }
     const zoom = d3.zoom()
@@ -433,7 +454,6 @@ function corrMatrix(data, cfg) {
 
 function treemap(data, cfg) {
 
-    let root = data;
     let svg = d3.select(cfg.selector).select("svg");
              
     let treeLayout = d3.treemap()
@@ -443,13 +463,12 @@ function treemap(data, cfg) {
         // .paddingInner(2)
         .padding(5)
 
-    treeLayout(root);
-    console.log("root", root);
+    treeLayout(data);
 
     let color = d3.scaleOrdinal(d3.schemeCategory10);
 
     let cells = svg.selectAll('g')
-        .data(d3.group(root, d => d.height))
+        .data(d3.group(data, d => d.height))
         .join('g')
             .selectAll("rect")
             .data(d => d[1])
@@ -462,7 +481,7 @@ function treemap(data, cfg) {
                 .attr('opacity', '0.3');
 
     let te = svg.selectAll('g')
-        .data(d3.group(root, d => d.height))
+        .data(d3.group(data, d => d.height))
         .join('g')
             .selectAll("text")
             .data(d => d[1])

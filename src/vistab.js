@@ -48,7 +48,6 @@ function updateDropdownsVis(cat_keys, num_keys, data) {
     updateDropdown("#dropdown_treemap_1", cat_keys, () => updateVisTab(data));
     updateDropdown("#dropdown_treemap_2", cat_keys, () => updateVisTab(data));
 
-    console.log(cat_keys)
     updateVisTab(data);
 }
 
@@ -59,13 +58,11 @@ function updateVisTab(data) {
     let tm_1 = d3.select("#dropdown_treemap_1 select").node().value;
     let tm_2 = d3.select("#dropdown_treemap_2 select").node().value;
 
-    console.log(tm_1, tm_2)
-    if (sp_x != "" || sp_x != ""){
+    if (sp_x != "" || sp_x != "" && (sp_x != sp_x )){
         scatterplotVis(data, sp_x, sp_y);
     }
 
     if ((tm_1 != "" && tm_2 != "") && (tm_1 != tm_2)){
-        console.log(convertForTreemap(data, tm_1, tm_2))
         treemap(convertForTreemap(data, tm_1, tm_2), {
             "width": width,
             "height": height,
@@ -91,18 +88,4 @@ function scatterplotVis(data, colX, colY) {
         "height": height,
         "selector": "#scatterplot_vistab"
     });
-}
-
-function convertForTreemap(data, l1, l2) {
-    // return d3.stratify()
-    //     .id(function(d) { return d[l1]; })
-    //     .parentId(function(d) { return d[l2]; })
-    //     (data);
-    let rollupData = d3.rollup(data, v => v.length, d => d[l1], d => d[l2]);
-    console.log("rollup", rollupData);
-    
-    let childrenAccessorFn = ([ key, value ]) => value.size && Array.from(value);
-    return d3.hierarchy([null, rollupData], childrenAccessorFn)
-        .sum(([key,value]) => value)
-        .sort((a, b) => b.value - a.value)
 }

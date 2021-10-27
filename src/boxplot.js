@@ -66,6 +66,8 @@ function BoxPlot(data, {
     const yScale = yType(yDomain, yRange);
     const xAxis = d3.axisBottom(xScale).ticks(thresholds, xFormat).tickSizeOuter(0);
     const yAxis = d3.axisLeft(yScale).ticks(height / 40, yFormat);
+    
+    const mean = d3.mean(Y);
   
     const svg = d3.create("svg")
         .attr("width", width)
@@ -117,6 +119,15 @@ function BoxPlot(data, {
           H${xScale(d.x1) - insetRight}
         `);
   
+    g.append("path")
+        .style("stroke", "firebrick")
+        .style("opacity", .6)
+        .attr("stroke-width", 1.5)
+        .attr("d", d => `
+          M${xScale(d.x0) + insetLeft},${yScale(mean)}
+          H${xScale(d.x1) - insetRight}
+        `);
+
     g.append("g")
         .attr("fill", stroke)
         .attr("fill-opacity", 0.2)
