@@ -22,6 +22,19 @@ function isNull(col) {
             .filter(d => col.generator.listOfGenerators[d].name == "delete-me").length >= 1;
 }
 
+function downloadCSV(filename, text) {
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
+
+    element.style.display = 'none';
+    document.body.appendChild(element);
+
+    element.click();
+
+    document.body.removeChild(element);
+}
+
 $(function() {
 
     d3.select("#new_dimension").on("mousedown", function(e, d) {
@@ -29,6 +42,14 @@ $(function() {
     });
     d3.select("#button_run").on("mousedown", function(e, d) {
         update();
+    });
+
+    d3.select("#button_download").on("mousedown", function(e, d) {
+        let data = generateData();
+        let csvData = d3.csvFormat(data)
+        console.log(csvData);
+
+        downloadCSV("dataset.csv", csvData);
     });
 });
 
@@ -197,3 +218,4 @@ function convertForTreemap(data, l1, l2) {
         .sum(([key,value]) => value)
         .sort((a, b) => b.value - a.value)
 }
+
