@@ -1,7 +1,8 @@
 let loadedData;
-let datasets = ["iris.csv", "automobile.csv"];
+let datasets = ["geocapes_sul.csv", "iris.csv", "automobile.csv"];
 let datasetTypes = {"iris.csv": {"sepal_length": "num", "sepal_width": "num",
-                "petal_length": "num", "petal_width": "num","iris":"cat"}
+                                "petal_length": "num", "petal_width": "num","iris":"cat"},
+                    "geocapes_sul.csv": {"ANO":"num", "UF":"cat", "DOUTORADO_PLENO": "num", "MESTRADO":"num"}
             };
 
 
