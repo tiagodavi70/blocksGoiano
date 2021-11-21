@@ -187,7 +187,7 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
             //     step = slider_value / 100;
             let min = -10000;
             let max = 10000;
-            let step = 100;
+            let step = 1;
             let nodeText = `
                 <label for="${shortName}" style="border: 1px solid grey; margin: 5px" class="flex-container container">
                     <div style="margin: 5px"> ${displayName} </div>
