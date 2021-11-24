@@ -145,13 +145,23 @@ function update() {
             describeNumericalDim(data, dim_name, "#vis_info");
             describeNumDataset(data, dim_name)
         }
-         
-        if (col.generator.inputGenerator) {
-            if (col.generator.name == "Categorical Function") {
+
+        function getIfFunction(gen) {
+            if (gen.inputGenerator) {
+                return gen;
+            } else {
+                return gen.generator ? getIfFunction(gen.generator) : gen;
+            }
+        }
+        
+        let generatorFunction = getIfFunction(col.generator);
+
+        if (generatorFunction.inputGenerator) {
+            if (generatorFunction.name == "Categorical Function") {
                 let svg = BeeswarmChart(data, {
                     x: d => d[col.name],
                     width: width,
-                    colorMap: d => d[col.generator.inputGenerator.parent.name]
+                    colorMap: d => d[generatorFunction.inputGenerator.parent.name]
                 });
                 d3.select("#beeswarm_together_main_vis").style("display", "inherit");
                 d3.select("#beeswarm_together_main_vis").selectAll("*").remove();
@@ -163,7 +173,7 @@ function update() {
             } else {
                 d3.select("#scatterplot_main_vis").style("display", "inherit");
                 scatterplot(convertForScatterplot(data, {
-                        "x": col.generator.inputGenerator.parent.name, 
+                        "x": generatorFunction.inputGenerator.parent.name, 
                         "y": dim_name
                     }), {
                         "width": width,
