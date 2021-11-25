@@ -339,7 +339,10 @@ function scatterplot(data, cfg, regression=false) {
         .attr("stroke", color);
     
     let lines = [];
-    if (regression) {
+    let showLine = d3.select("#line_visible").property("checked");
+    
+    svg.selectAll("path.regression").remove();
+    if (regression && showLine) {
         // console.log(cfg.selector, d3.select(cfg.selector).selectAll(".regression").nodes());
         d3.select("#suavizacao_parent").selectAll(".regression").remove();
         let slider_area = d3.select("#suavizacao_parent")
@@ -390,7 +393,7 @@ function scatterplot(data, cfg, regression=false) {
 
                 let dataSynth = data.filter(d => d["color"] == "synth");
                 let predictionSynth = regressionGenerator(dataSynth);
-                console.log("prediction", predictionLoaded, predictionSynth);
+                
                 let l3 = svg.append("path")
                     .attr("class", "regression")
                     .style("opacity", .5)

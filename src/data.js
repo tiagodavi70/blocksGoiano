@@ -51,6 +51,11 @@ $(function() {
 
         downloadCSV("dataset.csv", csvData);
     });
+
+    d3.select("#line_visible").on("change", function(e,d) {
+        // console.log("line showing now")
+        loadScatterplot();
+    })
 });
 
 function generateData() {
