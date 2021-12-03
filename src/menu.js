@@ -188,7 +188,7 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
             let missing = ["MCAR", "MNAR"].includes(generator.name);
             let isFunction = generator.name.includes("Function");
 
-            if (isFunction) {
+            if (isFunction || generator.name == "Noise Generator") {
                 min = -10;
                 max = 10;
                 step = 0.1;
