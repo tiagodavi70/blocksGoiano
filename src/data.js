@@ -109,6 +109,7 @@ function update() {
     
     clearDG();
 
+    console.log(dim_name, type)
     if (data[0][dim_name] !== undefined) {
 
         let t_data = data.slice(-10);
@@ -130,7 +131,7 @@ function update() {
 
                     describeCatDataset(data, dim_name);
                 }
-        } else if (type == "Numeric") {
+        } else if (type == "Numeric" || type == "Mixed") {
             d3.select("#histogram").style("display", "inherit");
             d3.select("#vis_info").style("display", "inherit");
 

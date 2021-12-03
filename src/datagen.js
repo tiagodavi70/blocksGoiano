@@ -811,7 +811,7 @@ class MCAR extends Accessory{
 
     constructor(value, probability){
         super("MCAR");
-        this.value = value || "Miss";
+        this.value = value || 0; // "Miss"
         this.probability = probability || 0.1;
     }
 
@@ -868,7 +868,7 @@ class MNAR extends Accessory{
     constructor(value, probability, firstPattern, secondPattern, mask, className="MNAR"){
         super(className);
         this.operator = Generator.Operators.none;
-        this.value = value || "Miss";
+        this.value = value || 0; // "Miss"
         this.probability = probability || 1;
         this.columnType = this.getReturnedType();
         this.firstPattern = firstPattern || "";

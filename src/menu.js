@@ -175,19 +175,29 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
         .append("div")
             .classed(parentName, true)
             .text(displayName);
-          
-    console.log("widget", param, generator)
+
     switch (param.type) {
         case "number": {
             let value = generator[param.variableName] != undefined ? +generator[param.variableName] : 1; // TODO: default value
             let slider_value = value == 0 ? 1 : value;
 
-            // let min = -slider_value * 10, 
-            //     max = slider_value * 10, 
-            //     step = slider_value / 100;
-            let min = -10000;
-            let max = 10000;
+            let min = -100;
+            let max = 100;
             let step = 1;
+
+            let missing = ["MCAR", "MNAR"].includes(generator.name);
+            let isFunction = generator.name.includes("Function");
+
+            if (isFunction) {
+                min = -10;
+                max = 10;
+                step = 0.1;
+            } else if (missing) {
+                min = 0;
+                max = 1;
+                step = 0.01;
+            }
+
             let nodeText = `
                 <label for="${shortName}" style="border: 1px solid grey; margin: 5px" class="flex-container container">
                     <div style="margin: 5px"> ${displayName} </div>
