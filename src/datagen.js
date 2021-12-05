@@ -1155,9 +1155,13 @@ class RangeFilter extends Accessory {
 
     generate() {
         let value =  super.generate(0);
-        while (value > this.begin && value < this.end) {
+
+        let cont = 0;
+        while (value > this.begin && value < this.end && cont++ <= 1000) {
             value = super.generate(0);
         }
+        value = cont >= 1000? 0 : value;
+
         this.lastGenerated = value;
         return value;
     }

@@ -280,6 +280,8 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
                     }
                     
                     let element = window.prompt("Input");
+                    if (element == null) return;
+
                     generator[param.variableName].push(element);
                     datagenerator.changeGeneratorToIndex(getIndex(dimIdModel), generator, getIndex(parentName));
                     parent.select("div").selectAll("div").remove();
@@ -328,7 +330,7 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
                             .attr("min", 0)
                             .attr("max", 1)
                             .attr("step", .01)
-                            .attr("value", (v)) // TODO: automatic calculation
+                            .attr("value", v) 
                             .on("change", function(e,d) {
                                 let n = parent.selectAll("input").nodes();
                                 let index = n.indexOf(this);
@@ -452,7 +454,7 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
                                 let sizeSelected = selectedGen.array.length;
                                 
                                 if (sizeInput > sizeSelected) {
-                                    for (let i = sizeSelected ; i < sizeInput ; i++ ) {
+                                    for (let i = sizeSelected ; i <= sizeInput ; i++ ) {
                                         createNewDimension(dimIdModel, i);
                                         let auxName = "aux_" + getIndex(dimIdModel) + "_" + i;
                                         let col = getColFromName(auxName);
@@ -508,7 +510,6 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
                 let cols = datagenerator.columns.filter(d => d.type == "Categorical" 
                                                             && d.name !== dimIdModel); // column.generator
                 let names = cols.map((d,i) => d.name);
-
                 options.selectAll("option")
                     .data(names)
                     .join("option")
