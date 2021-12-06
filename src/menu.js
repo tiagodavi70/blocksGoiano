@@ -386,11 +386,14 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
                 .classed("external-update", true)
                 .attr("id", shortName)
                 .on("change", function(e,d) {
-                    updateOptions();
                     let selectedDim = d3.select(this).node().value;
-                    generator[param.variableName] = 
-                        datagenerator.columns[datagenerator.columns.map(d => d.name).indexOf(selectedDim)].generator;
+                    datagenerator.columns.forEach(d => d.lastSelected = false);
+                    let col_index = datagenerator.columns.map(d => d.name).indexOf(selectedDim)
+                    datagenerator.columns[col_index].lastSelected = true;
+                    generator[param.variableName] = datagenerator.columns[col_index].generator;
                     datagenerator.changeGeneratorToIndex(getIndex(dimIdModel), generator, getIndex(parentName));
+                    
+                    updateOptions();
                     update();
                 });
             
@@ -401,16 +404,17 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
                 let names = cols.map((d,i) => d.name);
 
                 options.selectAll("option")
-                    .data(names)
+                    .data(cols)
                     .join("option")
-                        .attr("value", d => d)
-                        .text(d => d);
+                        .attr("value", d => d.name)
+                        .text(d => d.name)
+                        .property("selected", d => d.lastSelected);
             }
 
             updateOptions();
             break;
         }
-        case "CategoricalColumn": { // vvv
+        case "CategoricalColumn": { 
 
             let options = parent.append("select")
                 .classed(parentName, true)

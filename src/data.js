@@ -109,7 +109,6 @@ function update() {
     
     clearDG();
 
-    console.log(dim_name, type)
     if (data[0][dim_name] !== undefined) {
 
         let t_data = data.slice(-10);

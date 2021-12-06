@@ -56,7 +56,10 @@ function BoxPlot(data, {
         bin.outliers = bin.filter(i => Y[i] < r0 || Y[i] > r1);
         return bin;
       });
-  
+    console.log(B[0].x0, d3.min(Y), d3.max(Y))
+    B[0].x0 = B[0].x0 > d3.min(Y)? B[0].x0 : d3.min(Y);
+    B[0].x1 = B[0].x1 < d3.max(Y)? B[0].x1 : d3.max(Y);
+
     // Compute default domains.
     if (xDomain === undefined) xDomain = [d3.min(B, d => d.x0), d3.max(B, d => d.x1)];
     if (yDomain === undefined) yDomain = [d3.min(B, d => d.range[0]), d3.max(B, d => d.range[1])];
@@ -100,7 +103,8 @@ function BoxPlot(data, {
           M${xScale((d.x0 + d.x1) / 2)},${yScale(d.range[1])}
           V${yScale(d.range[0])}
         `);
-  
+    
+
     g.append("path")
         .attr("fill", fill)
         .attr("d", d => `
@@ -111,6 +115,8 @@ function BoxPlot(data, {
           Z
         `);
   
+    console.log("aaa", B)
+
     g.append("path")
         .attr("stroke", stroke)
         .attr("stroke-width", 2)
