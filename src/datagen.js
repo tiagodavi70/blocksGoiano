@@ -632,6 +632,7 @@ class RandomWeightedCategorical extends Random {
             p+=this.weights[i];
             i++;
         }
+        
         this.lastGenerated = this.array[i];
         return this.lastGenerated;
     }

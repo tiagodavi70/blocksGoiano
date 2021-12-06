@@ -271,12 +271,13 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
                 .text("Add option")
                 .on("mousedown", function(e,d) {
                     
-                    if (generator[param.variableName].length == 3 && generator[param.variableName].filter(
-                        (d, i) => d == ['Banana', 'Apple', 'Orange'][i]).length == 3) {
+                    if ((generator[param.variableName].length == 3 && generator[param.variableName].filter(
+                        (d, i) => d == ['Banana', 'Apple', 'Orange'][i]).length == 3) || 
+                        (generator[probsVar].length != generator["array"].length)) {
                         generator[param.variableName] = [];
-                        if (hasNumarray) {
+                        // if (hasNumarray) {
                             generator[probsVar] = [];
-                        }
+                        // }
                     }
                     
                     let element = window.prompt("Input");
@@ -285,9 +286,9 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
                     generator[param.variableName].push(element);
                     datagenerator.changeGeneratorToIndex(getIndex(dimIdModel), generator, getIndex(parentName));
                     parent.select("div").selectAll("div").remove();
-                    if (hasNumarray) {
+                    // if (hasNumarray) {
                         generator[probsVar].push(probsVar == "weights" ? 1 : 50);
-                    }
+                    // }
                     loadCategories();
                     update();
                 });
@@ -296,7 +297,8 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
                 .attr("id", shortName)
             
             if (!(generator[param.variableName].length == 3 && generator[param.variableName].filter(
-                (d, i) => d == ['Banana', 'Apple', 'Orange'][i]).length == 3)) {
+                (d, i) => d == ['Banana', 'Apple', 'Orange'][i]).length == 3) || 
+                (generator[probsVar].length != generator["array"].length)) {
                     loadCategories();
             }
 
@@ -318,7 +320,7 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
                         }
                     }
                     
-                    let v = (d,i) => (generator[probsVar][i] && !newElement ? 
+                    let v = (d,i) => (generator[probsVar][i] &&  true? // !newElement
                             generator[probsVar][i] : ratio).toFixed(2);
                     
                     let classSlider = `dim_${getIndex(dimIdModel)}_gen_${getIndex(parentName)}`; 
@@ -333,6 +335,7 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
                             .attr("value", v) 
                             .on("change", function(e,d) {
                                 let n = parent.selectAll("input").nodes();
+                                
                                 let index = n.indexOf(this);
                                 let val = d3.select(this).node().value;
                                 
@@ -351,10 +354,11 @@ function loadWidget(parentName, dimIdModel, paramIndex, generator) {
                         if (values.length > 0) {
                             generator[probsVar] = values.map(d => +d.value);
                             datagenerator.changeGeneratorToIndex(getIndex(dimIdModel), generator, getIndex(parentName));
-                            update();
+                            // update();
                         }                      
                     });
                 }
+                update();
             }
             break;
         }

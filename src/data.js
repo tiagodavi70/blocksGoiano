@@ -106,7 +106,6 @@ function update() {
     let type = col.type;
 
     let data = generateData();
-    
     clearDG();
 
     if (data[0][dim_name] !== undefined) {
@@ -122,11 +121,12 @@ function update() {
         if (type == "Categorical") {
             
             if (!(geni["array"].length == 3 && geni["array"].filter(
-                (d, i) => d == ['Banana', 'Apple', 'Orange'][i]).length == 3)) {
+                (d, i) => d == ['Banana', 'Apple', 'Orange'][i]).length == 3) || 
+                (generator["weights"].length != generator["array"].length)) {
                     d3.select("#piechart").style("display", "inherit");    
                     
-                    pieChart(convertForPieChart(data, dim_name), 
-                        {"width": width, "height": height, "selector": "#piechart"});
+                    let pie_data = convertForPieChart(data, dim_name);
+                    pieChart(pie_data, {"width": width, "height": height, "selector": "#piechart"});
 
                     describeCatDataset(data, dim_name);
                 }
@@ -191,10 +191,13 @@ function update() {
 }
 
 function convertForPieChart(data, key) {
-    let datapie = d3.rollup(data, 
-                            v => v.length,
-                            d => d[key]);
-    return Array.from(datapie).map( d => ({"key": d[0], "value": d[1]}));
+    let unique = [...new Set(data.map(d => d[key]))];
+    console.log("unique", unique, unique.map( u=> ({"key":u, "value": data.filter(d=>d[key] == u).length}) ))
+
+    let datapie = d3.group(data, 
+                            function(d) { console.log(d[key]) ; return d[key] });
+                            
+    return Array.from(datapie).map( d => ({"key": d[0], "value": d[1].length}));
 }
 
 function convertForHistogram(data, key) {

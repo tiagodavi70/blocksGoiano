@@ -58,9 +58,9 @@ function getKeysByType(id, type) {
 function pieChart(data, cfg={width: width, height: height}) {
 
     let pie = d3.pie()
-        .sort(null)
+        // .sort(d => d.key)
         .value(d => d.value);
-
+        
     const radius = Math.min(cfg.width, cfg.height) / 2 * 0.8;
     let arcLabel = d3.arc().innerRadius(radius).outerRadius(radius);
 
