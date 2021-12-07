@@ -625,18 +625,40 @@ class RandomWeightedCategorical extends Random {
     }
 
     generate() {
-        let r = Math.random();
-        let p = this.weights[0];
-        let i = 0;
-        while(r > p && i < this.weights.length-1){
-            p+=this.weights[i];
-            i++;
-        }
+        function weighted_random(options) {
+            var i;
         
-        this.lastGenerated = this.array[i];
+            var weights = [];
+        
+            for (i = 0; i < options.length; i++)
+                weights[i] = options[i].weight + (weights[i - 1] || 0);
+            
+            var random = Math.random() * weights[weights.length - 1];
+            
+            for (i = 0; i < weights.length; i++)
+                if (weights[i] > random)
+                    break;
+            
+            return options[i].item;
+        }
+
+        let r = Math.random();
+        let p = 0; // this.weights[0];
+        let i = 0;
+        console.log("before")
+        // while(r >= p && i < this.weights.length-1){
+        //     p+=this.weights[i];
+        //     i++;
+        // }
+        let item = weighted_random(this.weights.map((w, i) => ({"weight": w, "item": this.array[i]})))
+
+        console.log("after", this.array[i])
+        
+        // this.lastGenerated = this.array[i];
+        this.lastGenerated = item;
         return this.lastGenerated;
     }
-
+    
     getGenParams() {
         let params = super.getGenParams();
         params.push(

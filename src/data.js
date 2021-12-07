@@ -191,13 +191,10 @@ function update() {
 }
 
 function convertForPieChart(data, key) {
-    let unique = [...new Set(data.map(d => d[key]))];
-    console.log("unique", unique, unique.map( u=> ({"key":u, "value": data.filter(d=>d[key] == u).length}) ))
 
-    let datapie = d3.group(data, 
-                            function(d) { console.log(d[key]) ; return d[key] });
-                            
-    return Array.from(datapie).map( d => ({"key": d[0], "value": d[1].length}));
+    let datapie = d3.group(data, function(d) { return d[key] });
+
+    return Array.from(datapie).map(d => ({"key": d[0], "value": d[1].length}));
 }
 
 function convertForHistogram(data, key) {
